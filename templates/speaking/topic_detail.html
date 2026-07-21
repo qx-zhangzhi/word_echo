@@ -1,0 +1,46 @@
+<!-- apps/speaking/templates/speaking/topic_detail.html -->
+{% extends "speaking/mobile_base.html" %}
+
+{% block title %}{{ topic.title }}{% endblock %}
+
+{% block content %}
+<div class="top-bar">
+    <a class="back-link" href="{% url 'speaking_topic_list' %}">← 返回话题列表</a>
+    <div class="top-title">{{ topic.title }}</div>
+    <div class="top-subtitle">{{ topic.get_part_display }}</div>
+</div>
+
+{% if topic.description %}
+    <div class="card">
+        <div class="card-desc">{{ topic.description|linebreaksbr }}</div>
+    </div>
+{% endif %}
+
+<a href="{% url 'speaking_question_create' topic.id %}">
+    <button class="btn btn-primary" type="button">新增问题</button>
+</a>
+
+<div class="section-title">Questions</div>
+
+{% for question in questions %}
+    <a href="{% url 'speaking_question_detail' question.id %}">
+        <div class="card">
+            <div class="card-title">
+                Q{{ forloop.counter }}. {{ question.question_text }}
+            </div>
+
+            <div class="tag-row">
+                <span class="tag gray">已回答 {{ question.answers.count }} 次</span>
+
+                {% if question.answers.count > 0 %}
+                    <span class="tag green">可复习</span>
+                {% else %}
+                    <span class="tag">开始练习</span>
+                {% endif %}
+            </div>
+        </div>
+    </a>
+{% empty %}
+    <div class="empty">这个话题下面还没有问题</div>
+{% endfor %}
+{% endblock %}

@@ -1,0 +1,71 @@
+<!-- apps/speaking/templates/speaking/question_form.html -->
+{% extends "speaking/mobile_base.html" %}
+
+{% block title %}{{ page_title }}{% endblock %}
+
+{% block content %}
+<div class="top-bar">
+    <a class="back-link" href="{% url 'speaking_topic_detail' topic.id %}">← 返回 {{ topic.title }}</a>
+    <div class="top-title">{{ page_title }}</div>
+    <div class="top-subtitle">{{ topic.get_part_display }} · {{ topic.title }}</div>
+</div>
+
+<form method="post">
+    {% csrf_token %}
+
+    <div class="card">
+        <div class="form-field">
+            <label class="form-label">问题内容</label>
+            {{ form.question_text }}
+            {% for error in form.question_text.errors %}
+                <div class="form-error">{{ error }}</div>
+            {% endfor %}
+        </div>
+
+        <div class="form-field">
+            <label class="form-label">参考回答</label>
+            {{ form.sample_answer }}
+            {% for error in form.sample_answer.errors %}
+                <div class="form-error">{{ error }}</div>
+            {% endfor %}
+        </div>
+
+        <div class="form-field">
+            <label class="form-label">答题要点</label>
+            {{ form.key_points }}
+            {% for error in form.key_points.errors %}
+                <div class="form-error">{{ error }}</div>
+            {% endfor %}
+        </div>
+
+        <div class="form-field">
+            <label class="form-label">有用表达</label>
+            {{ form.useful_expressions }}
+            {% for error in form.useful_expressions.errors %}
+                <div class="form-error">{{ error }}</div>
+            {% endfor %}
+        </div>
+
+        <div class="form-field">
+            <label class="form-label">排序</label>
+            {{ form.sort_order }}
+            <div class="form-help">数字越小越靠前</div>
+            {% for error in form.sort_order.errors %}
+                <div class="form-error">{{ error }}</div>
+            {% endfor %}
+        </div>
+
+        <div class="form-field">
+            <label class="form-label">
+                {{ form.is_active }}
+                启用
+            </label>
+            {% for error in form.is_active.errors %}
+                <div class="form-error">{{ error }}</div>
+            {% endfor %}
+        </div>
+    </div>
+
+    <button class="btn btn-primary" type="submit">保存问题</button>
+</form>
+{% endblock %}

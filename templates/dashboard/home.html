@@ -1,0 +1,95 @@
+{% extends "base.html" %}
+
+{% block title %}Word Echo{% endblock %}
+
+{% block content %}
+<div class="hero">
+    <div class="hero-title">Word Echo</div>
+    <div class="hero-subtitle">
+        单词、听写、写作、短语、同义词、雅思口语练习
+    </div>
+</div>
+
+<a class="quick-card" href="/speaking/topics/">
+    <div class="quick-title">雅思口语练习</div>
+    <div class="quick-desc">
+        按 Topic 学习，每个问题可以保存多次回答，适合反复听、反复练。
+    </div>
+</a>
+<a class="wide-card" href="/primary-dictation/sets/">
+    <div class="wide-card-inner">
+        <div class="wide-icon">📝</div>
+        <div class="wide-main">
+            <div class="wide-title">小学英语听写</div>
+            <div class="wide-desc">按年级和单元听写单词</div>
+        </div>
+        <div class="arrow">›</div>
+    </div>
+</a>
+<div class="section-title">学习功能</div>
+
+<div class="grid">
+    <a class="feature-card" href="/words/">
+        <div class="card-icon">📘</div>
+        <div class="card-title">单词</div>
+        <div class="card-desc">管理易忘单词</div>
+    </a>
+
+    <a class="feature-card" href="/practice/">
+        <div class="card-icon">🎧</div>
+        <div class="card-title">听写</div>
+        <div class="card-desc">反复听和记忆</div>
+    </a>
+
+    <a class="feature-card" href="/writing/">
+        <div class="card-icon">✍️</div>
+        <div class="card-title">写作</div>
+        <div class="card-desc">记录和修改表达</div>
+    </a>
+
+    <a class="feature-card" href="/synonyms/">
+        <div class="card-icon">🔁</div>
+        <div class="card-title">同义词</div>
+        <div class="card-desc">积累替换表达</div>
+    </a>
+</div>
+
+<div class="section-title">更多</div>
+
+<a class="wide-card" href="/phrases/">
+    <div class="wide-card-inner">
+        <div class="wide-icon">💬</div>
+        <div class="wide-main">
+            <div class="wide-title">短语</div>
+            <div class="wide-desc">积累常用表达和例句</div>
+        </div>
+        <div class="arrow">›</div>
+    </div>
+</a>
+
+<a class="wide-card" href="/speaking/topics/">
+    <div class="wide-card-inner">
+        <div class="wide-icon">🗣️</div>
+        <div class="wide-main">
+            <div class="wide-title">IELTS Speaking</div>
+            <div class="wide-desc">Topic → Question → 多次回答记录</div>
+        </div>
+        <div class="arrow">›</div>
+    </div>
+</a>
+
+<a class="wide-card" href="/admin/">
+    <div class="wide-card-inner">
+        <div class="wide-icon">⚙️</div>
+        <div class="wide-main">
+            <div class="wide-title">后台管理</div>
+            <div class="wide-desc">创建话题、问题、单词和短语</div>
+        </div>
+        <div class="arrow">›</div>
+    </div>
+</a>
+
+<div class="footer">
+    Word Echo · 微信浏览器友好版
+</div>
+{% endblock %}

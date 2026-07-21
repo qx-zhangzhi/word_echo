@@ -1,0 +1,61 @@
+{% extends "base.html" %}
+
+{% block title %}小学英语听写{% endblock %}
+
+{% block content %}
+<div class="top-bar">
+    <a class="back-link" href="/">← 返回首页</a>
+    <div class="top-title">小学英语听写</div>
+    <div class="top-subtitle">按年级、单元进行单词听写</div>
+</div>
+
+<form method="get" class="card">
+    <div class="card-title">选择年级</div>
+
+    <select name="grade" class="input" style="margin-top: 12px;">
+        <option value="">全部年级</option>
+        {% for value, label in grade_choices %}
+            <option value="{{ value }}" {% if grade == value %}selected{% endif %}>
+                {{ label }}
+            </option>
+        {% endfor %}
+    </select>
+
+    <button type="submit" class="btn btn-primary" style="margin-top: 12px;">
+        筛选
+    </button>
+</form>
+
+<div class="section-title">词表</div>
+
+{% for word_set in word_sets %}
+    <a class="card" href="{% url 'primary_word_set_detail' word_set.id %}">
+        <div class="card-title">{{ word_set.title }}</div>
+
+        <div class="card-desc">
+            {{ word_set.get_grade_display }} · {{ word_set.get_term_display }}
+            {% if word_set.unit %}
+                · {{ word_set.unit }}
+            {% endif %}
+        </div>
+
+        <div style="display: flex; gap: 8px; flex-wrap: wrap; margin-top: 12px;">
+            <span style="
+                display: inline-flex;
+                padding: 4px 9px;
+                border-radius: 999px;
+                background: #eef2ff;
+                color: #3730a3;
+                font-size: 12px;
+                font-weight: 700;
+            ">
+                {{ word_set.words.count }} 个单词
+            </span>
+        </div>
+    </a>
+{% empty %}
+    <div class="card">
+        <div class="card-desc">还没有词表，请先到后台创建。</div>
+    </div>
+{% endfor %}
+{% endblock %}

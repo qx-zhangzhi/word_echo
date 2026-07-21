@@ -1,0 +1,102 @@
+{% extends "base.html" %}
+
+{% block title %}我的单词{% endblock %}
+
+{% block content %}
+<div class="top-bar">
+    <div class="top-title">我的单词</div>
+    <div class="top-subtitle">搜索、复习和管理易忘单词</div>
+</div>
+
+<form method="get" class="card" style="padding: 14px;">
+    <input
+        type="text"
+        name="q"
+        value="{{ query }}"
+        class="input"
+        placeholder="搜索单词、中文、例句"
+    >
+
+    <div style="display: flex; gap: 10px; margin-top: 12px;">
+        <button type="submit" class="btn btn-secondary" style="flex: 1;">
+            搜索
+        </button>
+
+        <a href="{% url 'word_create' %}" class="btn btn-primary" style="flex: 1;">
+            新增
+        </a>
+    </div>
+</form>
+
+<div class="section-title">单词列表</div>
+
+{% if words %}
+    {% for word in words %}
+        <a class="card" href="{% url 'word_detail' word.pk %}">
+            <div class="card-title">
+                {{ word.word }}
+            </div>
+
+            <div class="card-desc">
+                {% if word.phonetic %}
+                    <div>音标：{{ word.phonetic }}</div>
+                {% endif %}
+
+                <div>
+                    中文：{{ word.meaning_cn|default:"-" }}
+                </div>
+            </div>
+
+            <div style="display: flex; gap: 8px; flex-wrap: wrap; margin-top: 12px;">
+                <span style="
+                    display: inline-flex;
+                    padding: 4px 9px;
+                    border-radius: 999px;
+                    background: #eef2ff;
+                    color: #3730a3;
+                    font-size: 12px;
+                    font-weight: 700;
+                ">
+                    错 {{ word.wrong_count }}
+                </span>
+
+                <span style="
+                    display: inline-flex;
+                    padding: 4px 9px;
+                    border-radius: 999px;
+                    background: #ecfdf5;
+                    color: #047857;
+                    font-size: 12px;
+                    font-weight: 700;
+                ">
+                    对 {{ word.correct_count }}
+                </span>
+
+                {% if word.is_forgotten %}
+                    <span style="
+                        display: inline-flex;
+                        padding: 4px 9px;
+                        border-radius: 999px;
+                        background: #fef2f2;
+                        color: #b91c1c;
+                        font-size: 12px;
+                        font-weight: 700;
+                    ">
+                        易忘
+                    </span>
+                {% endif %}
+            </div>
+        </a>
+    {% endfor %}
+{% else %}
+    <div class="card">
+        <div class="card-desc">还没有单词，先新增一个吧。</div>
+
+        <div style="margin-top: 14px;">
+            <a href="{% url 'word_create' %}" class="btn btn-primary">
+                新增单词
+            </a>
+        </div>
+    </div>
+{% endif %}
+{% endblock %}

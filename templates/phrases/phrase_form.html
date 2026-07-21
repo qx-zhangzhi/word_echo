@@ -1,0 +1,188 @@
+{% extends "base.html" %}
+
+{% block title %}
+    {% if mode == "create" %}
+        新增好句
+    {% else %}
+        编辑好句
+    {% endif %}
+{% endblock %}
+
+{% block content %}
+<div class="top-bar">
+    {% if mode == "update" and entry %}
+        <a class="back-link" href="{% url 'phrase_detail' entry.pk %}">← 返回好句详情</a>
+        <div class="top-title">编辑好句</div>
+        <div class="top-subtitle">{{ entry.get_category_display }}</div>
+    {% else %}
+        <a class="back-link" href="{% url 'phrase_list' %}">← 返回好句列表</a>
+        <div class="top-title">新增好句</div>
+        <div class="top-subtitle">保存适合写作和口语的表达</div>
+    {% endif %}
+</div>
+
+{% if form.errors %}
+    <div class="card" style="
+        background: #fef2f2;
+        border-color: #fecaca;
+        color: #991b1b;
+    ">
+        <div class="card-title">请检查表单内容</div>
+        <div class="card-desc" style="color: #991b1b;">
+            {{ form.errors }}
+        </div>
+    </div>
+{% endif %}
+
+<form method="post" id="phrase-form">
+    {% csrf_token %}
+
+    <div class="card">
+        <div class="form-field">
+            <label class="form-label">英文好句</label>
+            {{ form.english_text }}
+            {% for error in form.english_text.errors %}
+                <div class="form-error">{{ error }}</div>
+            {% endfor %}
+        </div>
+
+        <div class="form-field">
+            <div style="display: flex; align-items: center; justify-content: space-between; gap: 10px;">
+                <label class="form-label" style="margin-bottom: 0;">中文翻译</label>
+
+                <button
+                    type="button"
+                    class="btn btn-secondary"
+                    onclick="translateSentence()"
+                    style="width: auto; min-height: 36px; padding: 0 12px; font-size: 14px;"
+                >
+                    AI 翻译
+                </button>
+            </div>
+
+            <div style="margin-top: 8px;">
+                {{ form.chinese_text }}
+            </div>
+
+            {% for error in form.chinese_text.errors %}
+                <div class="form-error">{{ error }}</div>
+            {% endfor %}
+        </div>
+
+        <div class="form-field">
+            <label class="form-label">分类</label>
+            {{ form.category }}
+            {% for error in form.category.errors %}
+                <div class="form-error">{{ error }}</div>
+            {% endfor %}
+        </div>
+
+        <div class="form-field">
+            <label class="form-label">使用说明</label>
+            {{ form.usage_note }}
+            {% for error in form.usage_note.errors %}
+                <div class="form-error">{{ error }}</div>
+            {% endfor %}
+        </div>
+
+        <div class="form-field">
+            <label class="form-label">来源</label>
+            {{ form.source }}
+            {% for error in form.source.errors %}
+                <div class="form-error">{{ error }}</div>
+            {% endfor %}
+        </div>
+
+        <div class="form-field">
+            <label class="form-label" style="display: flex; align-items: center; gap: 8px;">
+                {{ form.is_favorite }}
+                收藏这条好句
+            </label>
+            {% for error in form.is_favorite.errors %}
+                <div class="form-error">{{ error }}</div>
+            {% endfor %}
+        </div>
+    </div>
+
+    <button type="submit" class="btn btn-primary">
+        保存
+    </button>
+
+    {% if mode == "update" and entry %}
+        <a href="{% url 'phrase_detail' entry.pk %}" class="btn btn-secondary" style="margin-top: 10px;">
+            取消
+        </a>
+    {% else %}
+        <a href="{% url 'phrase_list' %}" class="btn btn-secondary" style="margin-top: 10px;">
+            取消
+        </a>
+    {% endif %}
+</form>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+document.addEventListener("DOMContentLoaded", function () {
+    document.querySelectorAll("input, textarea, select").forEach(function (el) {
+        if (el.type === "checkbox" || el.type === "radio") {
+            el.classList.add("checkbox");
+            return;
+        }
+
+        if (el.tagName === "SELECT") {
+            el.classList.add("input");
+        } else if (el.tagName === "TEXTAREA") {
+            el.classList.add("textarea");
+        } else {
+            el.classList.add("input");
+        }
+    });
+});
+
+function getCsrfToken() {
+    const cookieValue = document.cookie
+        .split("; ")
+        .find(row => row.startsWith("csrftoken="));
+
+    return cookieValue ? cookieValue.split("=")[1] : "";
+}
+
+function translateSentence() {
+    const englishTextEl = document.getElementById("id_english_text");
+    const chineseTextEl = document.getElementById("id_chinese_text");
+
+    if (!englishTextEl || !chineseTextEl) {
+        alert("页面表单元素未找到");
+        return;
+    }
+
+    const englishText = (englishTextEl.value || "").trim();
+
+    if (!englishText) {
+        alert("请先输入英文句子");
+        return;
+    }
+
+    const formData = new FormData();
+    formData.append("english_text", englishText);
+    formData.append("csrfmiddlewaretoken", getCsrfToken());
+
+    fetch("{% url 'phrase_translate_api' %}", {
+        method: "POST",
+        body: formData
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (!data.ok) {
+            alert(data.error || "翻译失败");
+            return;
+        }
+
+        chineseTextEl.value = data.chinese_text || "";
+    })
+    .catch(() => {
+        alert("翻译失败");
+    });
+}
+</script>
+{% endblock %}

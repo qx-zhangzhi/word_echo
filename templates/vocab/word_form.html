@@ -1,0 +1,215 @@
+{% extends "base.html" %}
+
+{% block title %}
+    {% if mode == "update" %}编辑单词{% else %}新增单词{% endif %}
+{% endblock %}
+
+{% block content %}
+<div class="top-bar">
+    {% if mode == "update" and word %}
+        <a class="back-link" href="{% url 'word_detail' word.pk %}">← 返回单词详情</a>
+        <div class="top-title">编辑单词</div>
+        <div class="top-subtitle">{{ word.word }}</div>
+    {% else %}
+        <a class="back-link" href="{% url 'word_list' %}">← 返回单词列表</a>
+        <div class="top-title">新增单词</div>
+        <div class="top-subtitle">如果单词已存在，会直接跳转到旧记录</div>
+    {% endif %}
+</div>
+
+{% if messages %}
+    {% for message in messages %}
+        <div class="card" style="
+            border-color: #bfdbfe;
+            background: #eff6ff;
+            color: #1e40af;
+        ">
+            {{ message }}
+        </div>
+    {% endfor %}
+{% endif %}
+
+{% if mode == "create" %}
+    <form method="post" id="word-form">
+        {% csrf_token %}
+
+        <div class="card">
+            <div class="card-title">单词</div>
+
+            <div style="margin-top: 12px;">
+                <input
+                    type="text"
+                    name="word"
+                    class="input"
+                    placeholder="例如 accommodate"
+                    autofocus
+                    required
+                >
+            </div>
+
+            {% if error %}
+                <div style="
+                    margin-top: 12px;
+                    padding: 10px 12px;
+                    border-radius: 12px;
+                    background: #fef2f2;
+                    color: #b91c1c;
+                    font-size: 14px;
+                    line-height: 1.5;
+                ">
+                    {{ error }}
+                </div>
+            {% endif %}
+
+            <div class="card-desc">
+                保存时会先检查是否已经存在。不存在时，系统会自动生成音标、中文释义、词性和例句。
+            </div>
+        </div>
+
+        <button type="submit" class="btn btn-primary">
+            保存
+        </button>
+
+        <button
+            type="submit"
+            name="continue"
+            value="1"
+            class="btn btn-secondary"
+            style="margin-top: 10px;"
+        >
+            保存并继续
+        </button>
+    </form>
+
+    <div class="section-title">快捷入口</div>
+
+    <a class="wide-card" href="{% url 'word_list' %}">
+        <div class="wide-card-inner">
+            <div class="wide-icon">📚</div>
+            <div class="wide-main">
+                <div class="wide-title">单词列表</div>
+                <div class="wide-desc">查看已经添加的单词</div>
+            </div>
+            <div class="arrow">›</div>
+        </div>
+    </a>
+
+    <a class="wide-card" href="{% url 'practice_setup' %}">
+        <div class="wide-card-inner">
+            <div class="wide-icon">🎯</div>
+            <div class="wide-main">
+                <div class="wide-title">开始练习</div>
+                <div class="wide-desc">进入听写和复习模式</div>
+            </div>
+            <div class="arrow">›</div>
+        </div>
+    </a>
+
+{% else %}
+    <form method="post">
+        {% csrf_token %}
+
+        <div class="card">
+            <div class="form-field">
+                <label class="form-label">单词</label>
+                {{ form.word }}
+                {% for error in form.word.errors %}
+                    <div class="form-error">{{ error }}</div>
+                {% endfor %}
+            </div>
+
+            <div class="form-field">
+                <label class="form-label">TTS 发音文本</label>
+                {{ form.tts_text }}
+                <div class="form-help">一般和单词一致；短语或特殊读法可以单独设置。</div>
+                {% for error in form.tts_text.errors %}
+                    <div class="form-error">{{ error }}</div>
+                {% endfor %}
+            </div>
+
+            <div class="form-field">
+                <label class="form-label">音标</label>
+                {{ form.phonetic }}
+                {% for error in form.phonetic.errors %}
+                    <div class="form-error">{{ error }}</div>
+                {% endfor %}
+            </div>
+
+            <div class="form-field">
+                <label class="form-label">中文释义</label>
+                {{ form.meaning_cn }}
+                {% for error in form.meaning_cn.errors %}
+                    <div class="form-error">{{ error }}</div>
+                {% endfor %}
+            </div>
+
+            <div class="form-field">
+                <label class="form-label">词性</label>
+                {{ form.part_of_speech }}
+                {% for error in form.part_of_speech.errors %}
+                    <div class="form-error">{{ error }}</div>
+                {% endfor %}
+            </div>
+
+            <div class="form-field">
+                <label class="form-label">例句</label>
+                {{ form.example_sentence }}
+                {% for error in form.example_sentence.errors %}
+                    <div class="form-error">{{ error }}</div>
+                {% endfor %}
+            </div>
+
+            <div class="form-field">
+                <label class="form-label">备注</label>
+                {{ form.note }}
+                <div class="form-help">支持换行，适合记录易混点、记忆方法。</div>
+                {% for error in form.note.errors %}
+                    <div class="form-error">{{ error }}</div>
+                {% endfor %}
+            </div>
+
+            <div class="form-field">
+                <label class="form-label">难度</label>
+                {{ form.difficulty }}
+                <div class="form-help">1 最简单，5 最难。</div>
+                {% for error in form.difficulty.errors %}
+                    <div class="form-error">{{ error }}</div>
+                {% endfor %}
+            </div>
+
+            <div class="form-field">
+                <label class="form-label" style="display: flex; align-items: center; gap: 8px;">
+                    {{ form.is_active }}
+                    启用这个单词
+                </label>
+                {% for error in form.is_active.errors %}
+                    <div class="form-error">{{ error }}</div>
+                {% endfor %}
+            </div>
+        </div>
+
+        <button type="submit" class="btn btn-primary">
+            保存修改
+        </button>
+
+        <a href="{% url 'word_detail' word.pk %}" class="btn btn-secondary" style="margin-top: 10px;">
+            取消
+        </a>
+    </form>
+{% endif %}
+{% endblock %}
+
+{% block extra_js %}
+<script>
+const input = document.querySelector('input[name="word"]');
+
+if (input) {
+    input.addEventListener("keydown", function(e) {
+        if (e.key === "Enter" && "{{ mode }}" === "create") {
+            e.preventDefault();
+            document.getElementById("word-form").submit();
+        }
+    });
+}
+</script>
+{% endblock %}

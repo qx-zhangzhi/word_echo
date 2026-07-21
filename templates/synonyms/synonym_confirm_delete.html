@@ -1,0 +1,17 @@
+{% extends "base.html" %}
+
+{% block content %}
+<h2 class="mb-4">删除同义词记录</h2>
+
+<div class="alert alert-warning">
+    你确定要删除
+    <strong>{{ entry.headword }}</strong>
+    吗？
+</div>
+
+<form method="post">
+    {% csrf_token %}
+    <button type="submit" class="btn btn-danger">确认删除</button>
+    <a href="{% url 'synonym_detail' entry.pk %}" class="btn btn-outline-secondary">取消</a>
+</form>
+{% endblock %}

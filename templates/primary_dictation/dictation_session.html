@@ -1,0 +1,103 @@
+{% extends "base.html" %}
+
+{% block title %}开始听写{% endblock %}
+
+{% block content %}
+<div class="top-bar">
+    <a class="back-link" href="{% url 'primary_word_set_detail' word_set.id %}">← 返回词表</a>
+    <div class="top-title">听写练习</div>
+    <div class="top-subtitle">{{ word_set.title }}</div>
+</div>
+
+<div class="card">
+    <div class="card-title">说明</div>
+    <div class="card-desc">
+        点击“播放”，听到英文后输入单词。提交后会自动检查正确和错误。
+    </div>
+</div>
+
+<form method="post" action="{% url 'primary_dictation_submit' session.id %}">
+    {% csrf_token %}
+
+    {% for word in words %}
+        <div class="card">
+            <div class="card-title">第 {{ forloop.counter }} 个</div>
+
+            {% if word.audio_url %}
+                <audio
+                    id="audio_{{ word.id }}"
+                    src="{{ word.audio_url }}"
+                    preload="none"
+                ></audio>
+
+                <button
+                    type="button"
+                    class="btn btn-secondary"
+                    onclick="playAudio('audio_{{ word.id }}')"
+                    style="margin-top: 12px;"
+                >
+                    🔊 播放
+                </button>
+            {% else %}
+                <button
+                    type="button"
+                    class="btn btn-secondary"
+                    onclick="speakWord('{{ word.word|escapejs }}')"
+                    style="margin-top: 12px;"
+                >
+                    🔊 播放
+                </button>
+            {% endif %}
+
+            <input
+                type="text"
+                name="answer_{{ word.id }}"
+                class="input"
+                placeholder="请输入听到的单词"
+                autocomplete="off"
+                autocapitalize="none"
+                spellcheck="false"
+                style="margin-top: 12px;"
+            >
+
+            {% if word.meaning_cn %}
+                <div class="card-desc">
+                    中文提示：{{ word.meaning_cn }}
+                </div>
+            {% endif %}
+        </div>
+    {% endfor %}
+
+    <button type="submit" class="btn btn-primary">
+        提交听写
+    </button>
+</form>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+function speakWord(text) {
+    if (!window.speechSynthesis) {
+        alert("当前浏览器不支持网页发音，建议给单词配置 audio_url。");
+        return;
+    }
+
+    const utterance = new SpeechSynthesisUtterance(text);
+    utterance.lang = "en-US";
+    utterance.rate = 0.75;
+    utterance.pitch = 1;
+
+    window.speechSynthesis.cancel();
+    window.speechSynthesis.speak(utterance);
+}
+
+function playAudio(audioId) {
+    const audio = document.getElementById(audioId);
+    if (!audio) {
+        return;
+    }
+    audio.currentTime = 0;
+    audio.play();
+}
+</script>
+{% endblock %}

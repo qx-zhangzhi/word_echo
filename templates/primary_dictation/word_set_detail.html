@@ -1,0 +1,59 @@
+{% extends "base.html" %}
+
+{% block title %}{{ word_set.title }}{% endblock %}
+
+{% block content %}
+<div class="top-bar">
+    <a class="back-link" href="{% url 'primary_word_set_list' %}">← 返回词表</a>
+    <div class="top-title">{{ word_set.title }}</div>
+    <div class="top-subtitle">
+        {{ word_set.get_grade_display }} · {{ word_set.get_term_display }}
+        {% if word_set.unit %} · {{ word_set.unit }}{% endif %}
+    </div>
+</div>
+
+{% if word_set.description %}
+    <div class="card">
+        <div class="card-desc">{{ word_set.description|linebreaksbr }}</div>
+    </div>
+{% endif %}
+
+<a class="btn btn-primary" href="{% url 'primary_dictation_start' word_set.id %}">
+    开始听写
+</a>
+
+<div class="section-title">单词预览</div>
+
+{% for word in words %}
+    <div class="card">
+        <div class="card-title">{{ word.word }}</div>
+        <div class="card-desc">
+            {{ word.meaning_cn|default:"暂无中文释义" }}
+            {% if word.phonetic %}
+                <br>音标：{{ word.phonetic }}
+            {% endif %}
+        </div>
+    </div>
+{% empty %}
+    <div class="card">
+        <div class="card-desc">这个词表还没有单词。</div>
+    </div>
+{% endfor %}
+
+<div class="section-title">最近练习</div>
+
+{% for session in recent_sessions %}
+    <a class="card" href="{% url 'primary_dictation_result' session.id %}">
+        <div class="card-title">
+            {{ session.correct_count }} / {{ session.total_count }}
+        </div>
+        <div class="card-desc">
+            错误 {{ session.wrong_count }} 个 · {{ session.started_at|date:"Y-m-d H:i" }}
+        </div>
+    </a>
+{% empty %}
+    <div class="card">
+        <div class="card-desc">还没有练习记录。</div>
+    </div>
+{% endfor %}
+{% endblock %}

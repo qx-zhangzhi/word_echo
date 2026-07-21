@@ -1,0 +1,94 @@
+{% extends "base.html" %}
+
+{% block title %}好句积累{% endblock %}
+
+{% block content %}
+<div class="top-bar">
+    <a class="back-link" href="/">← 返回首页</a>
+    <div class="top-title">好句积累</div>
+    <div class="top-subtitle">积累写作、口语和通用表达</div>
+</div>
+
+<a href="{% url 'phrase_create' %}" class="btn btn-primary">
+    新增好句
+</a>
+
+<form method="get" class="card" style="margin-top: 12px;">
+    <div class="card-title">搜索筛选</div>
+
+    <input
+        type="text"
+        name="q"
+        value="{{ q }}"
+        class="input"
+        placeholder="搜索英文句子"
+        style="margin-top: 12px;"
+    >
+
+    <select name="category" class="input" style="margin-top: 12px;">
+        <option value="">全部分类</option>
+        <option value="writing" {% if category == "writing" %}selected{% endif %}>Writing</option>
+        <option value="speaking" {% if category == "speaking" %}selected{% endif %}>Speaking</option>
+        <option value="general" {% if category == "general" %}selected{% endif %}>General</option>
+    </select>
+
+    <button type="submit" class="btn btn-secondary" style="margin-top: 12px;">
+        筛选
+    </button>
+</form>
+
+<div class="section-title">好句列表</div>
+
+{% if entries %}
+    {% for entry in entries %}
+        <a class="card" href="{% url 'phrase_detail' entry.pk %}">
+            <div class="card-title" style="font-size: 16px;">
+                {{ entry.english_text|truncatechars:130 }}
+            </div>
+
+            <div class="card-desc">
+                {{ entry.chinese_text|default:"暂无中文翻译"|truncatechars:90 }}
+            </div>
+
+            <div style="display: flex; gap: 8px; flex-wrap: wrap; margin-top: 12px;">
+                <span style="
+                    display: inline-flex;
+                    padding: 4px 9px;
+                    border-radius: 999px;
+                    background: #eef2ff;
+                    color: #3730a3;
+                    font-size: 12px;
+                    font-weight: 700;
+                ">
+                    {{ entry.get_category_display }}
+                </span>
+
+                {% if entry.is_favorite %}
+                    <span style="
+                        display: inline-flex;
+                        padding: 4px 9px;
+                        border-radius: 999px;
+                        background: #fef3c7;
+                        color: #92400e;
+                        font-size: 12px;
+                        font-weight: 700;
+                    ">
+                        收藏
+                    </span>
+                {% endif %}
+            </div>
+        </a>
+    {% endfor %}
+{% else %}
+    <div class="card">
+        <div class="card-title">还没有好句记录</div>
+        <div class="card-desc">可以先新增一句写作或口语中想背下来的表达。</div>
+
+        <div style="margin-top: 14px;">
+            <a href="{% url 'phrase_create' %}" class="btn btn-primary">
+                新增好句
+            </a>
+        </div>
+    </div>
+{% endif %}
+{% endblock %}

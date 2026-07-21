@@ -1,0 +1,146 @@
+{% extends "base.html" %}
+
+{% block extra_css %}
+.review-header {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: 12px;
+    margin-bottom: 14px;
+}
+
+.review-title {
+    margin: 0;
+    font-size: 28px;
+    line-height: 1.2;
+    font-weight: 900;
+}
+
+.review-subtitle {
+    margin-top: 6px;
+    color: #6b7280;
+    font-size: 14px;
+    line-height: 1.5;
+}
+
+.review-stats {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 10px;
+    margin-bottom: 14px;
+}
+
+.stat-box {
+    padding: 14px;
+    border-radius: 14px;
+    background: #ffffff;
+    border: 1px solid #eef0f4;
+}
+
+.stat-num {
+    font-size: 24px;
+    line-height: 1.1;
+    font-weight: 900;
+}
+
+.stat-label {
+    margin-top: 5px;
+    color: #6b7280;
+    font-size: 13px;
+    font-weight: 800;
+}
+
+.review-card {
+    color: inherit;
+}
+
+.review-top {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: 12px;
+}
+
+.review-word {
+    font-size: 20px;
+    line-height: 1.3;
+    font-weight: 900;
+}
+
+.status-badge {
+    flex: 0 0 auto;
+    border-radius: 999px;
+    padding: 6px 10px;
+    font-size: 12px;
+    font-weight: 900;
+}
+
+.status-badge.is-learned {
+    background: #ecfdf5;
+    color: #047857;
+}
+
+.status-badge.is-pending {
+    background: #fff7ed;
+    color: #c2410c;
+}
+
+.review-meta {
+    margin-top: 10px;
+    color: #6b7280;
+    font-size: 13px;
+    line-height: 1.5;
+}
+
+.back-btn {
+    width: auto;
+    min-width: 82px;
+    min-height: 42px;
+    border-radius: 12px;
+    padding: 0 14px;
+    font-size: 14px;
+}
+{% endblock %}
+
+{% block content %}
+<div class="review-header">
+    <div>
+        <h1 class="review-title">同义词复习</h1>
+        <div class="review-subtitle">逐组测试能否主动想起替换表达，答对后标记为已学会。</div>
+    </div>
+    <a href="{% url 'synonym_list' %}" class="btn btn-secondary back-btn">返回</a>
+</div>
+
+<div class="review-stats">
+    <div class="stat-box">
+        <div class="stat-num">{{ pending_count }}</div>
+        <div class="stat-label">待复习</div>
+    </div>
+    <div class="stat-box">
+        <div class="stat-num">{{ learned_count }}</div>
+        <div class="stat-label">已学会</div>
+    </div>
+</div>
+
+{% if entries %}
+    {% for entry in entries %}
+    <a href="{% url 'synonym_review' entry.pk %}" class="card review-card">
+        <div class="review-top">
+            <div>
+                <div class="review-word">{{ entry.headword }}</div>
+                <div class="card-desc">{{ entry.meaning_cn|default:"未填写释义" }}</div>
+            </div>
+            <span class="status-badge {% if entry.is_learned %}is-learned{% else %}is-pending{% endif %}">
+                {% if entry.is_learned %}已学会{% else %}待复习{% endif %}
+            </span>
+        </div>
+        <div class="review-meta">测试 {{ entry.review_attempts }} 次，答对 {{ entry.review_correct }} 次</div>
+    </a>
+    {% endfor %}
+{% else %}
+<div class="card">
+    <div class="card-title">还没有可复习的同义词</div>
+    <div class="card-desc">先新增一组替换词组，再回来测试。</div>
+</div>
+{% endif %}
+{% endblock %}

@@ -1,0 +1,149 @@
+{% extends "base.html" %}
+
+{% block extra_css %}
+.list-header {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: 12px;
+    margin-bottom: 14px;
+}
+
+.list-title {
+    margin: 0;
+    font-size: 28px;
+    line-height: 1.2;
+    font-weight: 900;
+}
+
+.list-subtitle {
+    margin-top: 6px;
+    color: #6b7280;
+    font-size: 14px;
+    line-height: 1.5;
+}
+
+.header-actions {
+    display: flex;
+    gap: 8px;
+    flex: 0 0 auto;
+}
+
+.add-btn {
+    width: auto;
+    min-width: 96px;
+    min-height: 42px;
+    border-radius: 12px;
+    padding: 0 14px;
+    font-size: 14px;
+}
+
+.entry-card {
+    color: inherit;
+}
+
+.entry-top {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+}
+
+.entry-word {
+    font-size: 20px;
+    line-height: 1.3;
+    font-weight: 900;
+}
+
+.entry-status {
+    flex: 0 0 auto;
+    border-radius: 999px;
+    padding: 6px 10px;
+    font-size: 12px;
+    font-weight: 900;
+}
+
+.entry-status.is-learned {
+    background: #ecfdf5;
+    color: #047857;
+}
+
+.entry-status.is-pending {
+    background: #fff7ed;
+    color: #c2410c;
+}
+
+.entry-count {
+    flex: 0 0 auto;
+    color: #1d4ed8;
+    background: #eff6ff;
+    border-radius: 999px;
+    padding: 6px 10px;
+    font-size: 12px;
+    font-weight: 900;
+}
+
+.badge-row {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    margin-top: 12px;
+}
+
+.word-badge {
+    border: 1px solid #e5e7eb;
+    background: #f8fafc;
+    border-radius: 999px;
+    padding: 6px 10px;
+    color: #374151;
+    font-size: 13px;
+    font-weight: 800;
+}
+
+.empty-card {
+    text-align: center;
+}
+{% endblock %}
+
+{% block content %}
+<div class="list-header">
+    <div>
+        <h1 class="list-title">替换词组</h1>
+        <div class="list-subtitle">按主题积累一组表达，用固定句和对比表练主动替换。</div>
+    </div>
+    <div class="header-actions">
+        <a href="{% url 'synonym_review_list' %}" class="btn btn-secondary add-btn">复习</a>
+        <a href="{% url 'synonym_create' %}" class="btn btn-primary add-btn">新增</a>
+    </div>
+</div>
+
+{% if entries %}
+    {% for entry in entries %}
+    <a href="{% url 'synonym_detail' entry.pk %}" class="card entry-card">
+        <div class="entry-top">
+            <div>
+                <div class="entry-word">{{ entry.headword }}</div>
+                <div class="card-desc">{{ entry.meaning_cn|default:"未填写释义" }}</div>
+            </div>
+            <div style="display: flex; flex-direction: column; align-items: flex-end; gap: 8px;">
+                <div class="entry-count">{{ entry.items.all|length }} 个</div>
+                <div class="entry-status {% if entry.is_learned %}is-learned{% else %}is-pending{% endif %}">{% if entry.is_learned %}已学会{% else %}待复习{% endif %}</div>
+            </div>
+        </div>
+        <div class="badge-row">
+            {% for item in entry.items.all %}
+            <span class="word-badge">{{ item.word }}</span>
+            {% empty %}
+            <span class="muted">暂无词组</span>
+            {% endfor %}
+        </div>
+    </a>
+    {% endfor %}
+{% else %}
+<div class="card empty-card">
+    <div class="card-title">还没有替换词组</div>
+    <div class="card-desc">新建一组，先填你已经知道的表达，再让 AI 补充。</div>
+    <a href="{% url 'synonym_create' %}" class="btn btn-primary" style="margin-top: 14px;">新增第一组</a>
+</div>
+{% endif %}
+{% endblock %}

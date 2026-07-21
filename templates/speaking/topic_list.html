@@ -1,0 +1,40 @@
+<!-- apps/speaking/templates/speaking/topic_list.html -->
+{% extends "speaking/mobile_base.html" %}
+
+{% block title %}雅思口语话题{% endblock %}
+
+{% block content %}
+<div class="top-bar">
+    <div class="top-title">雅思口语练习</div>
+    <div class="top-subtitle">按 Topic 学习，每个问题可以反复回答和复习</div>
+</div>
+
+<a href="{% url 'speaking_topic_create' %}">
+    <button class="btn btn-primary" type="button">新增话题</button>
+</a>
+
+{% regroup topics by get_part_display as part_groups %}
+
+{% for group in part_groups %}
+    <div class="section-title">{{ group.grouper }}</div>
+
+    {% for topic in group.list %}
+        <a href="{% url 'speaking_topic_detail' topic.id %}">
+            <div class="card">
+                <div class="card-title">{{ topic.title }}</div>
+
+                {% if topic.description %}
+                    <div class="card-desc">{{ topic.description|linebreaksbr }}</div>
+                {% endif %}
+
+                <div class="tag-row">
+                    <span class="tag">{{ topic.get_part_display }}</span>
+                    <span class="tag gray">{{ topic.questions.count }} 个问题</span>
+                </div>
+            </div>
+        </a>
+    {% endfor %}
+{% empty %}
+    <div class="empty">还没有口语话题</div>
+{% endfor %}
+{% endblock %}

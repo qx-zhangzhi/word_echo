@@ -1,0 +1,75 @@
+{% extends "base.html" %}
+
+{% block content %}
+<h1 class="mb-4">错词本</h1>
+
+<div class="mb-3 d-flex justify-content-between">
+    <div class="text-muted">
+        共 {{ words|length }} 个错词
+    </div>
+
+    <div>
+        <a href="{% url 'practice_setup' %}?type=wrongbook"
+           class="btn btn-primary">
+            练习错词
+        </a>
+        <a href="{% url 'word_list' %}" class="btn btn-outline-secondary">
+            查看全部单词
+        </a>
+    </div>
+</div>
+
+<div class="card">
+    <div class="card-body p-0">
+        {% if words %}
+        <table class="table table-striped mb-0">
+            <thead>
+                <tr>
+                    <th>单词</th>
+                    <th>中文</th>
+                    <th>错误次数</th>
+                    <th>正确次数</th>
+                    <th>记忆等级</th>
+                    <th>上次练习</th>
+                    <th>操作</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for word in words %}
+                <tr>
+                    <td>{{ word.word }}</td>
+                    <td>{{ word.meaning_cn|default:"-" }}</td>
+                    <td>
+                        <span class="text-danger">{{ word.wrong_count }}</span>
+                    </td>
+                    <td>
+                        <span class="text-success">{{ word.correct_count }}</span>
+                    </td>
+                    <td>{{ word.memory_level }}</td>
+                    <td>{{ word.last_practiced_at|default:"-" }}</td>
+                    <td>
+                        <a href="{% url 'word_detail' word.pk %}"
+                           class="btn btn-sm btn-outline-secondary">
+                            详情
+                        </a>
+                        <a href="{% url 'practice_run' %}?type=wrongbook&limit=1"
+                           class="btn btn-sm btn-outline-primary">
+                            单词练习
+                        </a>
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+        {% else %}
+        <div class="p-4 text-muted text-center">
+            🎉 暂时没有错词，说明你最近表现不错！
+        </div>
+        {% endif %}
+    </div>
+</div>
+
+<div class="mt-4">
+    <a href="{% url 'home' %}" class="btn btn-outline-secondary">返回首页</a>
+</div>
+{% endblock %}

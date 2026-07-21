@@ -1,0 +1,35 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="container" style="max-width: 960px;">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h2>练习详情</h2>
+        <a href="{% url 'speaking_question_detail' attempt.question.pk %}" class="btn btn-outline-secondary">返回题目</a>
+    </div>
+
+    <div class="card shadow-sm border-0 mb-3">
+        <div class="card-body">
+            <p><strong>题目：</strong> {{ attempt.question.title }}</p>
+            <p><strong>练习时间：</strong> {{ attempt.created_at }}</p>
+            <p><strong>录音时长：</strong> {{ attempt.duration_sec }} 秒</p>
+            <audio controls src="{{ attempt.audio_file.url }}"></audio>
+        </div>
+    </div>
+
+    <div class="card shadow-sm border-0 mb-3">
+        <div class="card-body">
+            <p><strong>我的转写：</strong><br>{{ attempt.transcript|default:"-"|linebreaksbr }}</p>
+        </div>
+    </div>
+
+    <div class="card shadow-sm border-0">
+        <div class="card-body">
+            <p><strong>总分：</strong> {{ attempt.score_overall }}</p>
+            <p><strong>相似度：</strong> {{ attempt.score_similarity }}</p>
+            <p><strong>关键词：</strong> {{ attempt.score_keywords }}</p>
+            <p><strong>长度覆盖率：</strong> {{ attempt.score_length }}</p>
+            <p><strong>反馈：</strong><br>{{ attempt.feedback|default:"-"|linebreaksbr }}</p>
+        </div>
+    </div>
+</div>
+{% endblock %}

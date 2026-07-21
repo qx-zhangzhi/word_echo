@@ -1,0 +1,294 @@
+{% extends "base.html" %}
+
+{% block extra_css %}
+.detail-header {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: 12px;
+    margin-bottom: 14px;
+}
+
+.detail-title {
+    margin: 0;
+    font-size: 30px;
+    line-height: 1.15;
+    font-weight: 900;
+}
+
+.detail-subtitle {
+    margin-top: 6px;
+    color: #6b7280;
+    font-size: 14px;
+    line-height: 1.5;
+}
+
+.header-actions {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    min-width: 92px;
+}
+
+.learn-status {
+    display: inline-flex;
+    align-items: center;
+    width: fit-content;
+    margin-top: 8px;
+    border-radius: 999px;
+    padding: 6px 10px;
+    font-size: 12px;
+    font-weight: 900;
+}
+
+.learn-status.is-learned {
+    background: #ecfdf5;
+    color: #047857;
+}
+
+.learn-status.is-pending {
+    background: #fff7ed;
+    color: #c2410c;
+}
+
+.header-actions .btn {
+    min-height: 38px;
+    border-radius: 12px;
+    font-size: 14px;
+}
+
+.compare-wrap {
+    overflow-x: auto;
+    margin: 0 -16px;
+    padding: 0 16px;
+}
+
+.compare-table {
+    width: 100%;
+    min-width: 620px;
+    border-collapse: collapse;
+}
+
+.compare-table th,
+.compare-table td {
+    padding: 12px 10px;
+    border-bottom: 1px solid #edf0f5;
+    vertical-align: top;
+    text-align: left;
+}
+
+.compare-table th {
+    color: #475569;
+    font-size: 13px;
+    font-weight: 900;
+    background: #f8fafc;
+}
+
+.word-cell {
+    min-width: 130px;
+    color: #111827;
+    font-size: 16px;
+    font-weight: 900;
+}
+
+.sentence-cell {
+    color: #1f2937;
+    line-height: 1.55;
+}
+
+.note-cell {
+    color: #4b5563;
+    line-height: 1.55;
+}
+
+.speak-btn {
+    width: 32px;
+    min-height: 32px;
+    margin-left: 6px;
+    padding: 0;
+    border-radius: 10px;
+    border: 1px solid #dbeafe;
+    background: #eff6ff;
+    color: #1d4ed8;
+    font-size: 13px;
+}
+
+.summary-text {
+    color: #374151;
+    font-size: 15px;
+    line-height: 1.7;
+    white-space: pre-wrap;
+}
+
+.practice-box {
+    display: grid;
+    gap: 12px;
+}
+
+.practice-sentence {
+    padding: 14px;
+    border-radius: 14px;
+    background: #f8fafc;
+    color: #111827;
+    font-size: 18px;
+    line-height: 1.55;
+}
+
+.choice-grid {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 10px;
+}
+
+.choice-btn {
+    width: 100%;
+    min-height: 42px;
+    border-radius: 12px;
+    border: 1px solid #d7dde8;
+    background: #fff;
+    color: #111827;
+    font-size: 15px;
+    font-weight: 800;
+}
+
+.choice-btn.is-active {
+    border-color: #2563eb;
+    background: #eff6ff;
+    color: #1d4ed8;
+}
+
+.practice-note {
+    color: #4b5563;
+    font-size: 14px;
+    line-height: 1.6;
+}
+
+.empty-state {
+    color: #6b7280;
+    font-size: 14px;
+    line-height: 1.6;
+}
+{% endblock %}
+
+{% block content %}
+<div class="detail-header">
+    <div>
+        <h1 class="detail-title">{{ entry.headword }}</h1>
+        <div class="detail-subtitle">{{ entry.meaning_cn|default:"未填写中文释义" }}</div>
+        <div class="learn-status {% if entry.is_learned %}is-learned{% else %}is-pending{% endif %}">{% if entry.is_learned %}已学会{% else %}待复习{% endif %}</div>
+    </div>
+    <div class="header-actions">
+        <button type="button" class="btn btn-secondary" onclick="speakText('{{ entry.headword|escapejs }}')">朗读</button>
+        <a href="{% url 'synonym_review' entry.pk %}" class="btn btn-primary">测试</a>
+        <a href="{% url 'synonym_update' entry.pk %}" class="btn btn-secondary">编辑</a>
+        <a href="{% url 'synonym_list' %}" class="btn btn-secondary">返回</a>
+    </div>
+</div>
+
+<div class="card">
+    <div class="card-title">区别对比表</div>
+    <div class="card-desc">按 IELTS 使用场景分组，横向对比来源、正式程度、搭配和易混点。</div>
+    <div class="compare-wrap" style="margin-top: 12px;">
+        {% if items %}
+        <table class="compare-table">
+            <thead>
+                <tr>
+                    <th>词 / 词组</th>
+                    <th>分类 / 语境</th>
+                    <th>固定句子</th>
+                    <th>核心区别</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for item in items %}
+                <tr>
+                    <td class="word-cell">
+                        {{ item.word }}
+                        <button type="button" class="speak-btn" onclick="speakText('{{ item.word|escapejs }}')" aria-label="朗读 {{ item.word|escapejs }}">▶</button>
+                    </td>
+                    <td class="note-cell">{{ item.usage_context|default:"-" }}</td>
+                    <td class="sentence-cell">{{ item.fixed_sentence|default:"-" }}</td>
+                    <td class="note-cell">{{ item.comparison_note|default:item.note|default:"-" }}</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+        {% else %}
+        <div class="empty-state">暂无词组。点击编辑添加你已知道的词组，再让 AI 补充。</div>
+        {% endif %}
+    </div>
+</div>
+
+<div class="card">
+    <div class="card-title">主动替换练习</div>
+    <div class="card-desc">点击不同词组，观察同一句里替换后的表达差异。</div>
+    <div class="practice-box" style="margin-top: 12px;">
+        <div id="practice-sentence" class="practice-sentence">{{ entry.example_sentence|default:"请先在编辑页生成或填写练习句。" }}</div>
+        <div id="choice-grid" class="choice-grid"></div>
+        <div id="practice-note" class="practice-note">选择一个词组开始替换。</div>
+    </div>
+</div>
+
+<div class="card">
+    <div class="card-title">整体区别总结</div>
+    <div class="summary-text" style="margin-top: 10px;">{{ entry.usage_note|default:"-" }}</div>
+</div>
+
+<div class="card">
+    <a href="{% url 'synonym_delete' entry.pk %}" class="btn btn-secondary">删除这一组</a>
+</div>
+
+{{ practice_items|json_script:"practice-items" }}
+{% endblock %}
+
+{% block extra_js %}
+<script>
+function getEnglishVoice() {
+    const voices = window.speechSynthesis.getVoices() || [];
+    return voices.find(v => v.lang === "en-US") || voices.find(v => v.lang.startsWith("en-")) || null;
+}
+
+function speakText(text) {
+    if (!window.speechSynthesis || !text || !text.trim()) return;
+    window.speechSynthesis.cancel();
+    const utterance = new SpeechSynthesisUtterance(text);
+    utterance.lang = "en-US";
+    utterance.rate = 0.9;
+    const voice = getEnglishVoice();
+    if (voice) utterance.voice = voice;
+    window.speechSynthesis.speak(utterance);
+}
+
+function renderPractice() {
+    const items = JSON.parse(document.getElementById("practice-items").textContent || "[]");
+    const sentenceEl = document.getElementById("practice-sentence");
+    const noteEl = document.getElementById("practice-note");
+    const gridEl = document.getElementById("choice-grid");
+    const template = sentenceEl.textContent.trim();
+    if (!items.length) return;
+
+    function applyChoice(item, button) {
+        const replacement = item.word;
+        sentenceEl.textContent = template.includes("____")
+            ? template.replace("____", replacement)
+            : template + "  ->  " + replacement;
+        noteEl.textContent = [item.context, item.note || item.sentence].filter(Boolean).join("：") || "这个词组还没有区别说明。";
+        gridEl.querySelectorAll("button").forEach(el => el.classList.remove("is-active"));
+        button.classList.add("is-active");
+    }
+
+    items.forEach(function (item, index) {
+        const button = document.createElement("button");
+        button.type = "button";
+        button.className = "choice-btn";
+        button.textContent = item.word;
+        button.addEventListener("click", function () { applyChoice(item, button); });
+        gridEl.appendChild(button);
+        if (index === 0) applyChoice(item, button);
+    });
+}
+
+window.speechSynthesis.onvoiceschanged = function() { window.speechSynthesis.getVoices(); };
+document.addEventListener("DOMContentLoaded", renderPractice);
+</script>
+{% endblock %}

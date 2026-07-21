@@ -1,0 +1,155 @@
+<!-- jianpu/templates/jianpu/score_list.html -->
+
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <title>大字简谱编辑器</title>
+    <style>
+        body {
+            margin: 0;
+            padding: 30px;
+            background: #f5f5f5;
+            font-family: Arial, "Microsoft YaHei", sans-serif;
+        }
+
+        .page {
+            max-width: 1000px;
+            margin: 0 auto;
+        }
+
+        .header {
+            margin-bottom: 24px;
+        }
+
+        h1 {
+            font-size: 38px;
+            margin: 0 0 18px 0;
+        }
+
+        .actions {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 14px;
+        }
+
+        .action-btn {
+            display: inline-block;
+            padding: 18px 26px;
+            color: white;
+            border-radius: 12px;
+            text-decoration: none;
+            font-size: 25px;
+            font-weight: bold;
+        }
+
+        .new-btn {
+            background: #1976d2;
+        }
+
+        .template-btn {
+            background: #2e7d32;
+        }
+
+        .score-card {
+            background: white;
+            border-radius: 16px;
+            padding: 24px;
+            margin-bottom: 18px;
+            box-shadow: 0 4px 14px rgba(0, 0, 0, 0.08);
+        }
+
+        .score-title {
+            font-size: 30px;
+            font-weight: bold;
+            margin-bottom: 12px;
+        }
+
+        .score-meta {
+            color: #666;
+            font-size: 22px;
+            margin-bottom: 18px;
+        }
+
+        .edit-btn {
+            display: inline-block;
+            padding: 14px 26px;
+            background: #2e7d32;
+            color: white;
+            border-radius: 10px;
+            text-decoration: none;
+            font-size: 24px;
+        }
+
+        .print-btn {
+            display: inline-block;
+            padding: 14px 26px;
+            background: #ef6c00;
+            color: white;
+            border-radius: 10px;
+            text-decoration: none;
+            font-size: 24px;
+            margin-left: 10px;
+        }
+
+        .empty {
+            background: white;
+            border-radius: 16px;
+            padding: 40px;
+            text-align: center;
+            color: #777;
+            font-size: 26px;
+        }
+    </style>
+</head>
+<body>
+<div class="page">
+    <div class="header">
+        <h1>大字简谱编辑器</h1>
+
+        <div class="actions">
+            <a class="action-btn new-btn" href="{% url 'jianpu:create_score' %}">
+                新建空白谱子
+            </a>
+
+            <a class="action-btn template-btn"
+               href="{% url 'jianpu:create_score_from_template' 'twinkle' %}">
+                从模板新建：小星星
+            </a>
+
+            <a class="action-btn template-btn"
+               href="{% url 'jianpu:create_score_from_template' 'birthday' %}">
+                从模板新建：生日快乐
+            </a>
+        </div>
+    </div>
+
+    {% if scores %}
+        {% for score in scores %}
+            <div class="score-card">
+                <div class="score-title">{{ score.title }}</div>
+                <div class="score-meta">
+                    调号：{{ score.key_display }}
+                    &nbsp;&nbsp;
+                    拍号：{{ score.time_signature }}
+                    &nbsp;&nbsp;
+                    速度：{{ score.tempo }}
+                </div>
+
+                <a class="edit-btn" href="{% url 'jianpu:score_editor' score.id %}">
+                    打开编辑
+                </a>
+
+                <a class="print-btn" href="{% url 'jianpu:score_print' score.id %}" target="_blank">
+                    打印 / 导出 PDF
+                </a>
+            </div>
+        {% endfor %}
+    {% else %}
+        <div class="empty">
+            还没有谱子，可以新建空白谱子，也可以从“小星星”“生日快乐”模板开始。
+        </div>
+    {% endif %}
+</div>
+</body>
+</html>

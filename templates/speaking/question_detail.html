@@ -1,0 +1,108 @@
+<!-- apps/speaking/templates/speaking/question_detail.html -->
+{% extends "speaking/mobile_base.html" %}
+
+{% block title %}口语练习{% endblock %}
+
+{% block content %}
+<div class="top-bar">
+    <a class="back-link" href="{% url 'speaking_topic_detail' question.topic.id %}">← 返回 {{ question.topic.title }}</a>
+    <div class="top-title">口语练习</div>
+    <div class="top-subtitle">{{ question.topic.get_part_display }} · {{ question.topic.title }}</div>
+</div>
+
+<div class="card">
+    <div class="card-title">Question</div>
+    <div class="card-desc" style="font-size: 18px; color: #111827;">
+        {{ question.question_text|linebreaksbr }}
+    </div>
+</div>
+
+{% if question.sample_answer %}
+<div class="card">
+    <div class="card-title">参考回答</div>
+    <div class="card-desc">{{ question.sample_answer|linebreaksbr }}</div>
+</div>
+{% endif %}
+
+{% if question.key_points %}
+<div class="card">
+    <div class="card-title">答题要点</div>
+    <div class="card-desc">{{ question.key_points|linebreaksbr }}</div>
+</div>
+{% endif %}
+
+{% if question.useful_expressions %}
+<div class="card">
+    <div class="card-title">有用表达</div>
+    <div class="card-desc">{{ question.useful_expressions|linebreaksbr }}</div>
+</div>
+{% endif %}
+
+<div class="section-title">新增回答</div>
+
+<form method="post" enctype="multipart/form-data" action="{% url 'speaking_answer_create' question.id %}">
+    {% csrf_token %}
+
+    <div class="card">
+        <div class="card-title">我的回答文本</div>
+        <textarea class="textarea" name="answer_text" placeholder="可以先写下你的回答，也可以录音后再补充文本..."></textarea>
+
+        <div style="margin-top: 14px;">
+            <div class="card-title">上传录音</div>
+            <input type="file" name="audio_file" accept="audio/*" capture style="font-size: 15px;">
+            <div class="muted" style="margin-top: 8px;">
+                微信浏览器里可以选择录音文件；如果后面做前端录音，可以换成页面内录音按钮。
+            </div>
+        </div>
+    </div>
+
+    <button class="btn btn-primary" type="submit">保存本次回答</button>
+</form>
+
+<div class="section-title">历史回答</div>
+
+{% for answer in answers %}
+    <div class="card">
+        <div class="card-title">
+            第 {{ forloop.revcounter }} 次回答
+        </div>
+
+        <div class="muted">
+            {{ answer.created_at|date:"Y-m-d H:i" }}
+        </div>
+
+        {% if answer.score_overall %}
+            <div style="margin-top: 10px;">
+                <span class="score">{{ answer.score_overall }}</span>
+                <span class="muted"> / 9</span>
+            </div>
+        {% endif %}
+
+        {% if answer.audio_file %}
+            <audio class="audio" controls src="{{ answer.audio_file.url }}"></audio>
+        {% endif %}
+
+        {% if answer.answer_text %}
+            <div class="card-desc" style="margin-top: 12px; color: #111827;">
+                {{ answer.answer_text|linebreaksbr }}
+            </div>
+        {% endif %}
+
+        {% if answer.feedback %}
+            <div style="margin-top: 12px;">
+                <div class="card-title">反馈</div>
+                <div class="card-desc">{{ answer.feedback|linebreaksbr }}</div>
+            </div>
+        {% endif %}
+
+        {% if answer.corrected_answer %}
+            <div style="margin-top: 12px;">
+                <div class="card-title">优化后回答</div>
+                <div class="card-desc">{{ answer.corrected_answer|linebreaksbr }}</div>
+            </div>
+        {% endif %}
+    </div>
+{% empty %}
+    <div class="empty">还没有回答记录，先保存一次回答吧</div>
+{% endfor %}
+{% endblock %}

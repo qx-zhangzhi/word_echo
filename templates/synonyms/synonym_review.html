@@ -1,0 +1,179 @@
+{% extends "base.html" %}
+
+{% block extra_css %}
+.review-shell {
+    max-width: 720px;
+    margin: 0 auto;
+}
+
+.review-head {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: 12px;
+    margin-bottom: 14px;
+}
+
+.review-title {
+    margin: 0;
+    font-size: 28px;
+    line-height: 1.2;
+    font-weight: 900;
+}
+
+.review-subtitle {
+    margin-top: 6px;
+    color: #6b7280;
+    font-size: 14px;
+    line-height: 1.5;
+}
+
+.back-btn {
+    width: auto;
+    min-width: 82px;
+    min-height: 42px;
+    border-radius: 12px;
+    padding: 0 14px;
+    font-size: 14px;
+}
+
+.prompt-word {
+    margin: 0;
+    font-size: 34px;
+    line-height: 1.15;
+    font-weight: 900;
+}
+
+.prompt-meaning {
+    margin-top: 8px;
+    color: #4b5563;
+    font-size: 16px;
+    line-height: 1.5;
+}
+
+.prompt-sentence {
+    margin-top: 14px;
+    padding: 14px;
+    border-radius: 14px;
+    background: #f8fafc;
+    color: #111827;
+    font-size: 17px;
+    line-height: 1.6;
+}
+
+.answer-row {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: 10px;
+    margin-top: 16px;
+}
+
+.result-box {
+    border-radius: 14px;
+    padding: 14px;
+    margin-bottom: 12px;
+    font-size: 15px;
+    line-height: 1.6;
+}
+
+.result-box.is-correct {
+    border: 1px solid #bbf7d0;
+    background: #f0fdf4;
+    color: #166534;
+}
+
+.result-box.is-wrong {
+    border: 1px solid #fecaca;
+    background: #fef2f2;
+    color: #991b1b;
+}
+
+.correct-list {
+    margin-top: 8px;
+    color: #374151;
+}
+
+.status-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 10px;
+}
+
+.status-box {
+    padding: 12px;
+    border-radius: 12px;
+    background: #f8fafc;
+    border: 1px solid #eef0f4;
+}
+
+.status-num {
+    font-size: 22px;
+    font-weight: 900;
+}
+
+.status-label {
+    margin-top: 4px;
+    color: #6b7280;
+    font-size: 12px;
+    font-weight: 800;
+}
+
+@media (min-width: 640px) {
+    .answer-row {
+        grid-template-columns: minmax(0, 1fr) 140px;
+        align-items: center;
+    }
+}
+{% endblock %}
+
+{% block content %}
+<div class="review-shell">
+    <div class="review-head">
+        <div>
+            <h1 class="review-title">同义词测试</h1>
+            <div class="review-subtitle">输入一个你能主动想到的替换表达。</div>
+        </div>
+        <a href="{% url 'synonym_review_list' %}" class="btn btn-secondary back-btn">返回</a>
+    </div>
+
+    {% if result %}
+    <div class="result-box {% if result.is_correct %}is-correct{% else %}is-wrong{% endif %}">
+        {% if result.is_correct %}
+        答对了，已标记为已学会。
+        {% else %}
+        还没通过，继续保留在待复习里。
+        {% endif %}
+        <div class="correct-list">可接受答案：{{ result.correct_words|join:"、" }}</div>
+    </div>
+    {% endif %}
+
+    <div class="card">
+        <h2 class="prompt-word">{{ entry.headword }}</h2>
+        <div class="prompt-meaning">{{ entry.meaning_cn|default:"未填写中文释义" }}</div>
+        <div class="prompt-sentence">{{ entry.example_sentence|default:"请写出一个可以表达这个意思的同义词或词组。" }}</div>
+
+        {% if items %}
+        <form method="post" class="answer-row">
+            {% csrf_token %}
+            <input class="input" type="text" name="answer" placeholder="输入一个替换表达" autocomplete="off" autofocus>
+            <button class="btn btn-primary" type="submit">提交</button>
+        </form>
+        {% else %}
+        <div class="card-desc" style="margin-top: 14px;">这一组还没有可测试的同义词，请先编辑添加。</div>
+        {% endif %}
+    </div>
+
+    <div class="card">
+        <div class="status-grid">
+            <div class="status-box">
+                <div class="status-num">{{ entry.review_attempts }}</div>
+                <div class="status-label">本组测试次数</div>
+            </div>
+            <div class="status-box">
+                <div class="status-num">{{ entry.review_correct }}</div>
+                <div class="status-label">本组答对次数</div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

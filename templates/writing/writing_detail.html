@@ -1,0 +1,276 @@
+{% extends "base.html" %}
+
+{% block title %}
+    {{ entry.title|default:"雅思写作详情" }}
+{% endblock %}
+
+{% block content %}
+<div class="top-bar">
+    <a class="back-link" href="{% url 'writing_list' %}">← 返回写作列表</a>
+
+    <div class="top-title">
+        {{ entry.title|default:"雅思写作详情" }}
+    </div>
+
+    <div class="top-subtitle">
+        {{ entry.get_task_type_display }}
+        {% if entry.score %}
+            · {{ entry.score }} 分
+        {% endif %}
+    </div>
+</div>
+
+<div style="display: flex; gap: 10px; margin-bottom: 12px;">
+    <a href="{% url 'writing_update' entry.pk %}" class="btn btn-primary" style="flex: 1;">
+        编辑
+    </a>
+
+    <a href="{% url 'writing_delete' entry.pk %}" class="btn btn-secondary" style="flex: 1;">
+        删除
+    </a>
+</div>
+
+<div class="card">
+    <div class="card-title">基本信息</div>
+
+    <div class="card-desc">
+        <div><strong>类型：</strong>{{ entry.get_task_type_display }}</div>
+
+        <div style="margin-top: 8px;">
+            <strong>分数：</strong>{{ entry.score|default:"-" }}
+        </div>
+    </div>
+</div>
+
+<div class="card">
+    <div class="card-title">题目</div>
+
+    <div class="card-desc" style="color: #111827;">
+        {{ entry.prompt|default:"-"|linebreaksbr }}
+    </div>
+</div>
+
+{% if entry.chart_type or entry.chart_image %}
+<div class="card">
+    <div class="card-title">Task 1 图表</div>
+
+    <div class="card-desc">
+        <div>
+            <strong>图表类型：</strong>
+            {% if entry.chart_type %}
+                {{ entry.get_chart_type_display }}
+            {% else %}
+                -
+            {% endif %}
+        </div>
+    </div>
+
+    {% if entry.chart_image %}
+        <div style="margin-top: 14px;">
+            <img
+                src="{{ entry.chart_image.url }}"
+                alt="Task 1 图表"
+                style="
+                    width: 100%;
+                    max-width: 100%;
+                    border-radius: 16px;
+                    border: 1px solid #e5e7eb;
+                    background: #ffffff;
+                "
+            >
+        </div>
+    {% endif %}
+</div>
+{% endif %}
+
+<div class="card">
+    <div class="card-title">正文朗读</div>
+
+    <div class="card-desc">
+        点击播放后，会按句子朗读全文。微信浏览器里如果无法播放，请检查 TTS 服务是否可访问。
+    </div>
+
+    <div style="display: flex; gap: 10px; margin-top: 14px;">
+        <button
+            type="button"
+            class="btn btn-primary"
+            id="tts-btn"
+            onclick="playEssayTTS()"
+            style="flex: 1;"
+        >
+            ▶️ 播放
+        </button>
+
+        <button
+            type="button"
+            class="btn btn-secondary"
+            onclick="stopEssayTTS()"
+            style="flex: 1;"
+        >
+            ⏹ 停止
+        </button>
+    </div>
+</div>
+
+<div class="card">
+    <div class="card-title">正文</div>
+
+    <div class="essay-content" id="essay-content">
+        {{ highlighted_html|safe }}
+    </div>
+</div>
+
+<div class="card">
+    <div class="card-title">备注</div>
+
+    <div class="card-desc">
+        {{ entry.note|default:"-"|linebreaksbr }}
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_css %}
+.essay-content {
+    margin-top: 10px;
+    line-height: 1.95;
+    font-size: 17px;
+    color: #111827;
+    white-space: normal;
+    word-break: break-word;
+}
+
+.essay-content mark {
+    background: #fff3a3;
+    padding: 0 3px;
+    border-radius: 4px;
+}
+{% endblock %}
+
+{% block extra_js %}
+<script>
+let currentEssayAudio = null;
+let stopFlag = false;
+let isPlaying = false;
+
+const TTS_BASE_URL = "http://13.218.33.47:5005";
+
+function splitText(text) {
+    return text
+        .replace(/\r/g, "")
+        .split(/(?<=[.!?;。！？；])\s+|\n+/)
+        .map(s => s.trim())
+        .filter(s => s.length > 0);
+}
+
+async function playEssayTTS() {
+    const btn = document.getElementById("tts-btn");
+    const contentEl = document.getElementById("essay-content");
+
+    if (!contentEl) {
+        return;
+    }
+
+    const text = (contentEl.innerText || "").trim();
+
+    if (!text) {
+        alert("没有可播放的正文");
+        return;
+    }
+
+    if (isPlaying) {
+        return;
+    }
+
+    stopFlag = false;
+    isPlaying = true;
+    btn.disabled = true;
+    btn.innerText = "⏳ 播放中...";
+
+    const sentences = splitText(text);
+
+    try {
+        for (let i = 0; i < sentences.length; i++) {
+            if (stopFlag) {
+                break;
+            }
+
+            await playSinglePOST(sentences[i]);
+
+            if (stopFlag) {
+                break;
+            }
+        }
+    } catch (err) {
+        console.error("TTS 播放失败:", err);
+        alert("TTS 播放失败");
+    } finally {
+        isPlaying = false;
+        btn.disabled = false;
+        btn.innerText = "▶️ 播放";
+        currentEssayAudio = null;
+    }
+}
+
+async function playSinglePOST(text) {
+    const response = await fetch(TTS_BASE_URL + "/tts", {
+        method: "POST",
+        headers: {
+            "Content-Type": "application/json"
+        },
+        body: JSON.stringify({
+            text: text
+        })
+    });
+
+    if (!response.ok) {
+        const errText = await response.text();
+        throw new Error("TTS 请求失败: " + response.status + " " + errText);
+    }
+
+    const contentType = response.headers.get("content-type") || "";
+
+    if (!contentType.includes("audio")) {
+        const txt = await response.text();
+        throw new Error("返回不是音频: " + txt);
+    }
+
+    const blob = await response.blob();
+    const url = URL.createObjectURL(blob);
+
+    return new Promise((resolve, reject) => {
+        const audio = new Audio(url);
+        currentEssayAudio = audio;
+
+        audio.onended = function () {
+            URL.revokeObjectURL(url);
+            resolve();
+        };
+
+        audio.onerror = function () {
+            URL.revokeObjectURL(url);
+            reject(new Error("audio playback error"));
+        };
+
+        audio.play().catch(reject);
+    });
+}
+
+function stopEssayTTS() {
+    stopFlag = true;
+
+    if (currentEssayAudio) {
+        currentEssayAudio.pause();
+        currentEssayAudio.currentTime = 0;
+        currentEssayAudio = null;
+    }
+
+    const btn = document.getElementById("tts-btn");
+
+    if (btn) {
+        isPlaying = false;
+        btn.disabled = false;
+        btn.innerText = "▶️ 播放";
+    }
+}
+</script>
+{% endblock %}

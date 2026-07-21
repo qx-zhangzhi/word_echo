@@ -1,0 +1,164 @@
+{% extends "base.html" %}
+
+{% block title %}
+    {% if mode == "create" %}
+        新增雅思写作
+    {% else %}
+        编辑雅思写作
+    {% endif %}
+{% endblock %}
+
+{% block content %}
+<div class="top-bar">
+    {% if mode == "update" and entry %}
+        <a class="back-link" href="{% url 'writing_detail' entry.pk %}">← 返回作文详情</a>
+        <div class="top-title">编辑雅思写作</div>
+        <div class="top-subtitle">{{ entry.title|default:"未命名作文" }}</div>
+    {% else %}
+        <a class="back-link" href="{% url 'writing_list' %}">← 返回写作列表</a>
+        <div class="top-title">新增雅思写作</div>
+        <div class="top-subtitle">记录题目、正文、分数和备注</div>
+    {% endif %}
+</div>
+
+{% if form.errors %}
+    <div class="card" style="
+        background: #fef2f2;
+        border-color: #fecaca;
+        color: #991b1b;
+    ">
+        <div class="card-title">请检查表单内容</div>
+        <div class="card-desc" style="color: #991b1b;">
+            {{ form.errors }}
+        </div>
+    </div>
+{% endif %}
+
+<form method="post" enctype="multipart/form-data">
+    {% csrf_token %}
+
+    <div class="card">
+        <div class="form-field">
+            <label class="form-label">标题</label>
+            {{ form.title }}
+            {% for error in form.title.errors %}
+                <div class="form-error">{{ error }}</div>
+            {% endfor %}
+        </div>
+
+        <div class="form-field">
+            <label class="form-label">类型</label>
+            {{ form.task_type }}
+            {% for error in form.task_type.errors %}
+                <div class="form-error">{{ error }}</div>
+            {% endfor %}
+        </div>
+
+        <div class="form-field">
+            <label class="form-label">题目</label>
+            {{ form.prompt }}
+            {% for error in form.prompt.errors %}
+                <div class="form-error">{{ error }}</div>
+            {% endfor %}
+        </div>
+
+        <div class="form-help">
+            Task 1 可以上传题目中的折线图、柱状图、表格、流程图等图片。
+        </div>
+        {% for error in form.chart_image.errors %}
+            <div class="form-error">{{ error }}</div>
+        {% endfor %}
+
+        {% if entry and entry.chart_image %}
+            <div style="margin-top: 12px;">
+                <img
+                    src="{{ entry.chart_image.url }}"
+                    alt="图表图片"
+                    style="
+                        max-width: 100%;
+                        border-radius: 14px;
+                        border: 1px solid #e5e7eb;
+                    "
+                >
+            </div>
+        {% endif %}
+
+        <div class="form-field">
+            <label class="form-label">正文</label>
+            {{ form.content }}
+            {% for error in form.content.errors %}
+                <div class="form-error">{{ error }}</div>
+            {% endfor %}
+        </div>
+
+        <div class="form-field">
+            <label class="form-label">高亮词</label>
+            {{ form.highlight_words }}
+
+            {% if form.highlight_words.help_text %}
+                <div class="form-help">
+                    {{ form.highlight_words.help_text }}
+                </div>
+            {% else %}
+                <div class="form-help">
+                    多个词可以用逗号或换行分隔。
+                </div>
+            {% endif %}
+
+            {% for error in form.highlight_words.errors %}
+                <div class="form-error">{{ error }}</div>
+            {% endfor %}
+        </div>
+
+        <div class="form-field">
+            <label class="form-label">分数</label>
+            {{ form.score }}
+            {% for error in form.score.errors %}
+                <div class="form-error">{{ error }}</div>
+            {% endfor %}
+        </div>
+
+        <div class="form-field">
+            <label class="form-label">备注</label>
+            {{ form.note }}
+            {% for error in form.note.errors %}
+                <div class="form-error">{{ error }}</div>
+            {% endfor %}
+        </div>
+    </div>
+
+    <button type="submit" class="btn btn-primary">
+        保存
+    </button>
+
+    {% if mode == "update" and entry %}
+        <a href="{% url 'writing_detail' entry.pk %}" class="btn btn-secondary" style="margin-top: 10px;">
+            取消
+        </a>
+    {% else %}
+        <a href="{% url 'writing_list' %}" class="btn btn-secondary" style="margin-top: 10px;">
+            取消
+        </a>
+    {% endif %}
+</form>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+document.addEventListener("DOMContentLoaded", function () {
+    document.querySelectorAll("input, textarea, select").forEach(function (el) {
+        if (el.type === "checkbox" || el.type === "radio") {
+            return;
+        }
+
+        if (el.tagName === "SELECT") {
+            el.classList.add("input");
+        } else if (el.tagName === "TEXTAREA") {
+            el.classList.add("textarea");
+        } else {
+            el.classList.add("input");
+        }
+    });
+});
+</script>
+{% endblock %}

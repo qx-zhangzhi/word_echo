@@ -1,0 +1,134 @@
+{% extends "base.html" %}
+
+{% block title %}{{ word.word }}{% endblock %}
+
+{% block content %}
+<div class="top-bar">
+    <a class="back-link" href="{% url 'word_list' %}">← 返回单词列表</a>
+
+    <div style="display: flex; align-items: center; justify-content: space-between; gap: 10px;">
+        <div>
+            <div class="top-title">{{ word.word }}</div>
+            <div class="top-subtitle">
+                {{ word.phonetic|default:"暂无音标" }}
+            </div>
+        </div>
+
+        <button
+            onclick="speakWord('{{ word.tts_text|default:word.word|escapejs }}')"
+            type="button"
+            style="
+                width: 48px;
+                height: 48px;
+                border-radius: 16px;
+                border: none;
+                background: #eef2ff;
+                color: #1d4ed8;
+                font-size: 22px;
+                font-weight: 800;
+            "
+        >
+            🔊
+        </button>
+    </div>
+</div>
+
+<div class="card">
+    <div class="card-title">中文释义</div>
+    <div class="card-desc" style="color: #111827; font-size: 16px;">
+        {{ word.meaning_cn|default:"-"|linebreaksbr }}
+    </div>
+</div>
+
+<div class="card">
+    <div class="card-title">基础信息</div>
+
+    <div class="card-desc">
+        <div><strong>词性：</strong>{{ word.part_of_speech|default:"-" }}</div>
+        <div style="margin-top: 8px;"><strong>音标：</strong>{{ word.phonetic|default:"-" }}</div>
+    </div>
+</div>
+
+<div class="card">
+    <div class="card-title">例句</div>
+    <div class="card-desc" style="color: #111827;">
+        {{ word.example_sentence|default:"-"|linebreaksbr }}
+    </div>
+</div>
+
+<div class="card">
+    <div class="card-title">备注</div>
+    <div class="card-desc">
+        {{ word.note|default:"-"|linebreaksbr }}
+    </div>
+</div>
+
+<div class="section-title">学习统计</div>
+
+<div class="card">
+    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px;">
+        <div>
+            <div class="muted">错误次数</div>
+            <div style="font-size: 24px; font-weight: 800; color: #dc2626;">
+                {{ word.wrong_count }}
+            </div>
+        </div>
+
+        <div>
+            <div class="muted">正确次数</div>
+            <div style="font-size: 24px; font-weight: 800; color: #059669;">
+                {{ word.correct_count }}
+            </div>
+        </div>
+
+        <div>
+            <div class="muted">记忆等级</div>
+            <div style="font-size: 24px; font-weight: 800; color: #2563eb;">
+                {{ word.memory_level }}
+            </div>
+        </div>
+
+        <div>
+            <div class="muted">是否易忘</div>
+            <div style="font-size: 20px; font-weight: 800;">
+                {% if word.is_forgotten %}是{% else %}否{% endif %}
+            </div>
+        </div>
+    </div>
+
+    <div class="card-desc" style="margin-top: 16px;">
+        <div><strong>上次练习：</strong>{{ word.last_practiced_at|default:"-" }}</div>
+        <div style="margin-top: 8px;"><strong>下次复习：</strong>{{ word.next_review_at|default:"-" }}</div>
+    </div>
+</div>
+
+<div style="display: flex; gap: 10px; margin-top: 14px;">
+    <a href="{% url 'word_update' word.pk %}" class="btn btn-primary" style="flex: 1;">
+        编辑
+    </a>
+
+    <a href="{% url 'word_delete' word.pk %}" class="btn btn-secondary" style="flex: 1;">
+        删除
+    </a>
+</div>
+
+{% endblock %}
+
+{% block extra_js %}
+<script>
+function speakWord(text) {
+    if (!window.speechSynthesis) {
+        alert("浏览器不支持发音");
+        return;
+    }
+
+    const utterance = new SpeechSynthesisUtterance(text);
+    utterance.lang = "en-US";
+    utterance.rate = 0.9;
+    utterance.pitch = 1;
+
+    speechSynthesis.cancel();
+    speechSynthesis.speak(utterance);
+}
+</script>
+{% endblock %}

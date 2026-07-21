@@ -1,0 +1,1270 @@
+<!-- jianpu/templates/jianpu/score_editor.html -->
+
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <title>{{ score.title }} - 简谱编辑</title>
+    <style>
+        body {
+            margin: 0;
+            background: #f3f5f7;
+            font-family: Arial, "Microsoft YaHei", sans-serif;
+            color: #222;
+        }
+
+        .page {
+            max-width: 1300px;
+            margin: 0 auto;
+            padding: 18px;
+        }
+
+        .top-bar {
+            background: white;
+            border-radius: 16px;
+            padding: 18px;
+            margin-bottom: 16px;
+            box-shadow: 0 4px 14px rgba(0, 0, 0, 0.08);
+        }
+
+        .top-row {
+            display: flex;
+            gap: 14px;
+            flex-wrap: wrap;
+            align-items: center;
+        }
+
+        .field {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-size: 22px;
+        }
+
+        .field input,
+        .field select {
+            height: 48px;
+            border: 2px solid #ccc;
+            border-radius: 10px;
+            padding: 0 12px;
+            font-size: 24px;
+            background: white;
+        }
+
+        #titleInput {
+            width: 260px;
+        }
+
+        #keyInput {
+            width: 150px;
+        }
+
+        #timeInput {
+            width: 110px;
+        }
+
+        #tempoInput {
+            width: 90px;
+        }
+
+        .toolbar {
+            display: flex;
+            gap: 12px;
+            flex-wrap: wrap;
+            margin-top: 14px;
+        }
+
+        .toolbar button,
+        .back-link,
+        .print-link {
+            border: none;
+            border-radius: 12px;
+            padding: 14px 22px;
+            font-size: 22px;
+            font-weight: bold;
+            cursor: pointer;
+            text-decoration: none;
+            display: inline-block;
+        }
+
+        .btn-save {
+            background: #1976d2;
+            color: white;
+        }
+
+        .btn-play {
+            background: #2e7d32;
+            color: white;
+        }
+
+        .btn-stop {
+            background: #ef6c00;
+            color: white;
+        }
+
+        .btn-normal {
+            background: #e0e0e0;
+            color: #222;
+        }
+
+        .btn-danger {
+            background: #c62828;
+            color: white;
+        }
+
+        .back-link {
+            background: #616161;
+            color: white;
+        }
+
+        .print-link {
+            background: #6a1b9a;
+            color: white;
+        }
+
+        .status {
+            margin-top: 12px;
+            font-size: 22px;
+            color: #2e7d32;
+            min-height: 30px;
+        }
+
+        .current-info {
+            margin-top: 14px;
+            background: #e3f2fd;
+            border-radius: 12px;
+            padding: 14px;
+            font-size: 24px;
+            font-weight: bold;
+        }
+
+        .lyric-box {
+            margin-top: 14px;
+            background: #fff8e1;
+            border-radius: 12px;
+            padding: 14px;
+            display: flex;
+            gap: 12px;
+            flex-wrap: wrap;
+            align-items: center;
+        }
+
+        .lyric-box label {
+            font-size: 24px;
+            font-weight: bold;
+        }
+
+        .lyric-box input {
+            height: 54px;
+            width: 180px;
+            border: 2px solid #f9a825;
+            border-radius: 10px;
+            font-size: 30px;
+            text-align: center;
+        }
+
+        .lyric-box button {
+            height: 58px;
+            border: none;
+            border-radius: 12px;
+            padding: 0 22px;
+            font-size: 22px;
+            font-weight: bold;
+            cursor: pointer;
+        }
+
+        .btn-lyric {
+            background: #f9a825;
+            color: #222;
+        }
+
+        .btn-lyric-clear {
+            background: #ef9a9a;
+            color: #222;
+        }
+
+        .editor-panel {
+            background: white;
+            border-radius: 16px;
+            padding: 20px;
+            margin-bottom: 16px;
+            box-shadow: 0 4px 14px rgba(0, 0, 0, 0.08);
+            overflow-x: auto;
+        }
+
+        .score-line {
+            display: flex;
+            align-items: center;
+            margin-bottom: 22px;
+            gap: 8px;
+        }
+
+        .line-label {
+            width: 70px;
+            font-size: 22px;
+            color: #666;
+            flex-shrink: 0;
+        }
+
+        .cell {
+            width: 66px;
+            height: 104px;
+            border: 2px solid #bbb;
+            border-radius: 10px;
+            background: #fafafa;
+            text-align: center;
+            cursor: pointer;
+            user-select: none;
+            flex-shrink: 0;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            box-sizing: border-box;
+            position: relative;
+        }
+
+        .cell.selected {
+            border: 4px solid #1976d2;
+            background: #e3f2fd;
+        }
+
+        .cell.playing {
+            background: #fff176;
+            border-color: #f9a825;
+        }
+
+        .note-area {
+            height: 62px;
+            position: relative;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .note-core {
+            display: inline-block;
+            font-size: 36px;
+            font-weight: bold;
+            line-height: 42px;
+            position: relative;
+            min-width: 24px;
+        }
+
+        .note-core.eighth {
+            border-bottom: 4px solid #222;
+            padding-bottom: 2px;
+        }
+
+        .upper-dot {
+            position: absolute;
+            top: -20px;
+            left: 50%;
+            transform: translateX(-50%);
+            font-size: 28px;
+            line-height: 20px;
+        }
+
+        .lower-dot {
+            position: absolute;
+            bottom: -18px;
+            left: 50%;
+            transform: translateX(-50%);
+            font-size: 28px;
+            line-height: 20px;
+        }
+
+        .lyric-text {
+            height: 32px;
+            line-height: 32px;
+            font-size: 22px;
+            color: #c62828;
+            font-weight: bold;
+            border-top: 1px dashed #ddd;
+            overflow: hidden;
+            white-space: nowrap;
+            padding: 0 2px;
+        }
+
+        .empty-note {
+            color: #aaa;
+        }
+
+        .input-panel {
+            position: sticky;
+            bottom: 0;
+            background: white;
+            border-radius: 14px 14px 0 0;
+            padding: 10px 12px;
+            box-shadow: 0 -3px 12px rgba(0, 0, 0, 0.10);
+        }
+
+        .button-grid {
+            display: grid;
+            grid-template-columns: repeat(6, 1fr);
+            gap: 8px;
+            margin-bottom: 8px;
+        }
+
+        .note-btn {
+            height: 54px;
+            border: none;
+            border-radius: 12px;
+            font-size: 26px;
+            font-weight: bold;
+            cursor: pointer;
+            background: #1976d2;
+            color: white;
+        }
+
+        .note-btn.special {
+            background: #455a64;
+        }
+
+        .control-grid {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 8px;
+            margin-bottom: 8px;
+        }
+
+        .control-btn {
+            height: 46px;
+            border: none;
+            border-radius: 10px;
+            font-size: 19px;
+            font-weight: bold;
+            cursor: pointer;
+            background: #eeeeee;
+            color: #222;
+        }
+
+        .control-btn.active {
+            background: #1976d2;
+            color: white;
+        }
+
+        .control-btn.warn {
+            background: #ffcc80;
+        }
+
+        .control-btn.danger {
+            background: #ef9a9a;
+        }
+
+        @media (max-width: 800px) {
+            .cell {
+                width: 56px;
+                height: 96px;
+            }
+
+            .note-core {
+                font-size: 31px;
+            }
+
+            .lyric-text {
+                font-size: 20px;
+            }
+
+            .button-grid,
+            .control-grid {
+                grid-template-columns: repeat(2, 1fr);
+            }
+
+            .note-btn {
+                height: 68px;
+            }
+        }
+
+	.tie-mark {
+            position: absolute;
+            top: 2px;
+            left: 4px;
+            right: 4px;
+            height: 18px;
+            border-top: 3px solid #222;
+            border-radius: 50% 50% 0 0;
+            pointer-events: none;
+        }
+        
+        .tie-mark.start {
+            left: 22px;
+            right: -8px;
+            border-left: none;
+            border-right: none;
+        }
+        
+        .tie-mark.middle {
+            left: -8px;
+            right: -8px;
+            border-left: none;
+            border-right: none;
+        }
+        
+        .tie-mark.end {
+            left: -8px;
+            right: 22px;
+            border-left: none;
+            border-right: none;
+        }
+    </style>
+</head>
+<body>
+<div class="page">
+    <div class="top-bar">
+        <div class="top-row">
+            <div class="field">
+                <span>歌曲名</span>
+                <input id="titleInput" value="{{ score.title }}">
+            </div>
+
+	    <div class="field">
+                <span>调号</span>
+                <select id="keyInput">
+                    <option value="1=C" {% if score.key == "1=C" %}selected{% endif %}>1=C</option>
+                    <option value="1=#C" {% if score.key == "1=#C" %}selected{% endif %}>1=#C / bD</option>
+                    <option value="1=D" {% if score.key == "1=D" %}selected{% endif %}>1=D</option>
+                    <option value="1=#D" {% if score.key == "1=#D" %}selected{% endif %}>1=#D / bE</option>
+                    <option value="1=E" {% if score.key == "1=E" %}selected{% endif %}>1=E</option>
+                    <option value="1=F" {% if score.key == "1=F" %}selected{% endif %}>1=F</option>
+                    <option value="1=#F" {% if score.key == "1=#F" %}selected{% endif %}>1=#F / bG</option>
+                    <option value="1=G" {% if score.key == "1=G" %}selected{% endif %}>1=G</option>
+                    <option value="1=#G" {% if score.key == "1=#G" %}selected{% endif %}>1=#G / bA</option>
+                    <option value="1=A" {% if score.key == "1=A" %}selected{% endif %}>1=A</option>
+                    <option value="1=#A" {% if score.key == "1=#A" %}selected{% endif %}>1=#A / bB</option>
+                    <option value="1=B" {% if score.key == "1=B" %}selected{% endif %}>1=B</option>
+                </select>
+            </div>
+            <div class="field">
+                <span>拍号</span>
+                <select id="timeInput">
+                    <option value="2/4" {% if score.time_signature == "2/4" %}selected{% endif %}>2/4</option>
+                    <option value="3/4" {% if score.time_signature == "3/4" %}selected{% endif %}>3/4</option>
+                    <option value="4/4" {% if score.time_signature == "4/4" %}selected{% endif %}>4/4</option>
+                    <option value="6/8" {% if score.time_signature == "6/8" %}selected{% endif %}>6/8</option>
+                </select>
+            </div>
+
+            <div class="field">
+                <span>速度</span>
+                <input id="tempoInput" type="number" value="{{ score.tempo }}">
+            </div>
+        </div>
+
+        <div class="toolbar">
+            <button class="btn-save" onclick="saveScore()">保存</button>
+            <button class="btn-play" onclick="playScore()">播放</button>
+            <button class="btn-stop" onclick="stopPlay()">停止</button>
+            <button class="btn-normal" onclick="addLine()">新增一行</button>
+            <button class="btn-normal" onclick="addColumn()">每行加一格</button>
+            <button class="btn-normal" onclick="zoomIn()">放大</button>
+            <button class="btn-normal" onclick="zoomOut()">缩小</button>
+            <button class="btn-danger" onclick="deleteScore()">删除整首</button>
+            <a class="print-link" href="{% url 'jianpu:score_print' score.id %}" target="_blank">
+                打印 / 导出 PDF
+            </a>
+            <a class="back-link" href="{% url 'jianpu:score_list' %}">返回列表</a>
+        </div>
+
+        <div class="current-info" id="currentInfo">
+            当前：第 1 行，第 1 格
+        </div>
+
+        <div class="lyric-box">
+            <label>当前格歌词</label>
+            <input id="lyricInput" maxlength="8" placeholder="歌词">
+            <button class="btn-lyric" onclick="setCurrentLyric()">写入歌词</button>
+            <button class="btn-lyric-clear" onclick="clearCurrentLyric()">清除歌词</button>
+            <button class="btn-lyric" onclick="moveNextLyric()">歌词下一格</button>
+        </div>
+
+        <div id="statusText" class="status"></div>
+    </div>
+
+    <div class="editor-panel">
+        <div id="scoreEditor"></div>
+    </div>
+
+    <div class="input-panel">
+        <div class="button-grid">
+            <button class="note-btn" onclick="inputNote('1')">1</button>
+            <button class="note-btn" onclick="inputNote('2')">2</button>
+            <button class="note-btn" onclick="inputNote('3')">3</button>
+            <button class="note-btn" onclick="inputNote('4')">4</button>
+            <button class="note-btn" onclick="inputNote('5')">5</button>
+            <button class="note-btn" onclick="inputNote('6')">6</button>
+            <button class="note-btn" onclick="inputNote('7')">7</button>
+            <button class="note-btn special" onclick="inputNote('0')">0 停</button>
+            <button class="note-btn special" onclick="inputNote('-')">- 拉长</button>
+            <button class="note-btn special" onclick="inputNote('|')">| 小节</button>
+            <button class="note-btn special" onclick="inputNote('')">空白</button>
+            <button class="note-btn special" onclick="clearCurrentNote()">清除音符</button>
+        </div>
+
+        <div class="control-grid">
+            <button id="octaveHighBtn" class="control-btn" onclick="setCurrentOctave(1)">高音点</button>
+            <button id="octaveNormalBtn" class="control-btn" onclick="setCurrentOctave(0)">普通音</button>
+            <button id="octaveLowBtn" class="control-btn" onclick="setCurrentOctave(-1)">低音点</button>
+            <button id="durationEighthBtn" class="control-btn" onclick="toggleEighth()">八分下划线</button>
+        </div>
+	<div class="control-grid">
+            <button id="tieStartBtn" class="control-btn" onclick="setCurrentTie('start')">连音开始</button>
+            <button id="tieMiddleBtn" class="control-btn" onclick="setCurrentTie('middle')">连音中间</button>
+            <button id="tieEndBtn" class="control-btn" onclick="setCurrentTie('end')">连音结束</button>
+            <button id="tieClearBtn" class="control-btn warn" onclick="setCurrentTie('')">清除连音</button>
+        </div>
+
+        <div class="control-grid">
+            <button class="control-btn" onclick="movePrev()">上一格</button>
+            <button class="control-btn" onclick="moveNext()">下一格</button>
+            <button class="control-btn warn" onclick="deleteCurrentCell()">删除并前移</button>
+            <button class="control-btn danger" onclick="clearAll()">清空全部</button>
+        </div>
+    </div>
+</div>
+
+<script>
+    const SAVE_URL = "{% url 'jianpu:save_score' score.id %}";
+    const DELETE_URL = "{% url 'jianpu:delete_score' score.id %}";
+    const LIST_URL = "{% url 'jianpu:score_list' %}";
+
+    let scoreData = {{ score_data_json|safe }};
+
+    let selectedRow = 0;
+    let selectedCol = 0;
+    let fontScale = 1;
+
+    let audioContext = null;
+    let playingTimers = [];
+    let isPlaying = false;
+
+    function makeEmptyCell() {
+        return {
+            note: "",
+            lyric: "",
+            octave: 0,
+            duration: "quarter",
+	    tie: ""
+        };
+    }
+
+    function normalizeCell(cell) {
+        if (typeof cell === "object" && cell !== null && !Array.isArray(cell)) {
+            let tie = cell.tie || "";
+    
+            if (!["", "start", "middle", "end"].includes(tie)) {
+                tie = "";
+            }
+    
+            return {
+                note: cell.note || "",
+                lyric: cell.lyric || "",
+                octave: [-1, 0, 1].includes(parseInt(cell.octave)) ? parseInt(cell.octave) : 0,
+                duration: cell.duration === "eighth" ? "eighth" : "quarter",
+                tie: tie
+            };
+        }
+    
+        return {
+            note: cell || "",
+            lyric: "",
+            octave: 0,
+            duration: "quarter",
+            tie: ""
+        };
+    }
+
+
+    function ensureScoreData() {
+        if (!Array.isArray(scoreData) || scoreData.length === 0) {
+            scoreData = [];
+            for (let r = 0; r < 4; r++) {
+                const row = [];
+                for (let c = 0; c < 16; c++) {
+                    row.push(makeEmptyCell());
+                }
+                scoreData.push(row);
+            }
+        }
+
+        for (let r = 0; r < scoreData.length; r++) {
+            if (!Array.isArray(scoreData[r])) {
+                scoreData[r] = [];
+            }
+
+            for (let c = 0; c < scoreData[r].length; c++) {
+                scoreData[r][c] = normalizeCell(scoreData[r][c]);
+            }
+        }
+    }
+
+    function getCurrentCell() {
+        ensureScoreData();
+
+        if (!scoreData[selectedRow]) {
+            scoreData[selectedRow] = [];
+        }
+
+        if (!scoreData[selectedRow][selectedCol]) {
+            scoreData[selectedRow][selectedCol] = makeEmptyCell();
+        }
+
+        scoreData[selectedRow][selectedCol] = normalizeCell(scoreData[selectedRow][selectedCol]);
+        return scoreData[selectedRow][selectedCol];
+    }
+
+    function updateCurrentInfo() {
+        const cell = getCurrentCell();
+
+        let octaveText = "普通音";
+        if (cell.octave === 1) {
+            octaveText = "高音";
+        }
+        if (cell.octave === -1) {
+            octaveText = "低音";
+        }
+
+        let durationText = "四分音符";
+        if (cell.duration === "eighth") {
+            durationText = "八分音符";
+        }
+        let tieText = "无连音";
+        if (cell.tie === "start") {
+            tieText = "连音开始";
+        }
+        if (cell.tie === "middle") {
+            tieText = "连音中间";
+        }
+        if (cell.tie === "end") {
+            tieText = "连音结束";
+        }
+
+        document.getElementById("currentInfo").textContent =
+            "当前：第 " + (selectedRow + 1) + " 行，第 " + (selectedCol + 1) +
+            " 格，音符：" + (cell.note || "空") +
+            "，歌词：" + (cell.lyric || "空") +
+            "，" + octaveText +
+            "，" + durationText +
+	    "，" + tieText;
+
+        document.getElementById("lyricInput").value = cell.lyric || "";
+
+        document.getElementById("octaveHighBtn").classList.toggle("active", cell.octave === 1);
+        document.getElementById("octaveNormalBtn").classList.toggle("active", cell.octave === 0);
+        document.getElementById("octaveLowBtn").classList.toggle("active", cell.octave === -1);
+        document.getElementById("durationEighthBtn").classList.toggle("active", cell.duration === "eighth");
+	document.getElementById("tieStartBtn").classList.toggle("active", cell.tie === "start");
+        document.getElementById("tieMiddleBtn").classList.toggle("active", cell.tie === "middle");
+        document.getElementById("tieEndBtn").classList.toggle("active", cell.tie === "end");
+        document.getElementById("tieClearBtn").classList.toggle("active", cell.tie === "");
+    }
+
+    function renderNoteHtml(cell) {
+        const note = cell.note || "";
+
+        let noteText = note;
+        if (!noteText) {
+            noteText = "";
+        }
+
+        const noteCore = document.createElement("span");
+        noteCore.className = "note-core";
+
+        if (!noteText) {
+            noteCore.classList.add("empty-note");
+        }
+
+        if (cell.duration === "eighth" && noteText && noteText !== "|") {
+            noteCore.classList.add("eighth");
+        }
+
+        noteCore.textContent = noteText;
+
+        if (cell.octave === 1 && noteText && !["|", "-"].includes(noteText)) {
+            const dot = document.createElement("span");
+            dot.className = "upper-dot";
+            dot.textContent = "·";
+            noteCore.appendChild(dot);
+        }
+
+        if (cell.octave === -1 && noteText && !["|", "-"].includes(noteText)) {
+            const dot = document.createElement("span");
+            dot.className = "lower-dot";
+            dot.textContent = "·";
+            noteCore.appendChild(dot);
+        }
+
+        return noteCore;
+    }
+
+    function renderScore() {
+        ensureScoreData();
+
+        const editor = document.getElementById("scoreEditor");
+        editor.innerHTML = "";
+
+        for (let row = 0; row < scoreData.length; row++) {
+            const line = document.createElement("div");
+            line.className = "score-line";
+
+            const label = document.createElement("div");
+            label.className = "line-label";
+            label.textContent = "第" + (row + 1) + "行";
+            line.appendChild(label);
+
+            for (let col = 0; col < scoreData[row].length; col++) {
+                const cellData = normalizeCell(scoreData[row][col]);
+                scoreData[row][col] = cellData;
+
+                const cell = document.createElement("div");
+                cell.className = "cell";
+
+                if (row === selectedRow && col === selectedCol) {
+                    cell.classList.add("selected");
+                }
+
+                cell.style.transform = "scale(" + fontScale + ")";
+                cell.style.transformOrigin = "center";
+
+		const noteArea = document.createElement("div");
+		noteArea.className = "note-area";
+
+		if (cellData.tie) {
+		        const tieMark = document.createElement("div");
+		        tieMark.className = "tie-mark " + cellData.tie;
+		        noteArea.appendChild(tieMark);
+		}
+
+		noteArea.appendChild(renderNoteHtml(cellData));
+
+                const lyricText = document.createElement("div");
+                lyricText.className = "lyric-text";
+                lyricText.textContent = cellData.lyric || "";
+
+                cell.appendChild(noteArea);
+                cell.appendChild(lyricText);
+
+                cell.onclick = function () {
+                    selectedRow = row;
+                    selectedCol = col;
+                    renderScore();
+                };
+
+                line.appendChild(cell);
+            }
+
+            editor.appendChild(line);
+        }
+
+        updateCurrentInfo();
+    }
+
+    function setCurrentTie(tie) {
+        const cell = getCurrentCell();
+    
+        if (!["", "start", "middle", "end"].includes(tie)) {
+            tie = "";
+        }
+    
+        cell.tie = tie;
+        renderScore();
+    }
+    function inputNote(note) {
+        const cell = getCurrentCell();
+        cell.note = note;
+
+        if (["|", "-"].includes(note)) {
+            cell.lyric = "";
+        }
+
+        moveNext(false);
+        renderScore();
+    }
+
+    function clearCurrentNote() {
+        const cell = getCurrentCell();
+        cell.note = "";
+        renderScore();
+    }
+
+    function setCurrentLyric() {
+        const value = document.getElementById("lyricInput").value.trim();
+        const cell = getCurrentCell();
+        cell.lyric = value;
+        renderScore();
+    }
+
+    function clearCurrentLyric() {
+        const cell = getCurrentCell();
+        cell.lyric = "";
+        renderScore();
+    }
+
+    function moveNextLyric() {
+        setCurrentLyric();
+        moveNext();
+    }
+
+    function setCurrentOctave(octave) {
+        const cell = getCurrentCell();
+        cell.octave = octave;
+        renderScore();
+    }
+
+    function toggleEighth() {
+        const cell = getCurrentCell();
+
+        if (cell.duration === "eighth") {
+            cell.duration = "quarter";
+        } else {
+            cell.duration = "eighth";
+        }
+
+        renderScore();
+    }
+
+    function deleteCurrentCell() {
+        ensureScoreData();
+
+        if (!scoreData[selectedRow]) {
+            return;
+        }
+
+        scoreData[selectedRow].splice(selectedCol, 1);
+        scoreData[selectedRow].push(makeEmptyCell());
+
+        if (selectedCol >= scoreData[selectedRow].length) {
+            selectedCol = scoreData[selectedRow].length - 1;
+        }
+
+        renderScore();
+    }
+
+    function moveNext(needRender = true) {
+        ensureScoreData();
+
+        if (!scoreData[selectedRow]) {
+            return;
+        }
+
+        selectedCol++;
+
+        if (selectedCol >= scoreData[selectedRow].length) {
+            selectedCol = 0;
+            selectedRow++;
+
+            if (selectedRow >= scoreData.length) {
+                addLine(false);
+                selectedRow = scoreData.length - 1;
+                selectedCol = 0;
+            }
+        }
+
+        if (needRender) {
+            renderScore();
+        }
+    }
+
+    function movePrev() {
+        ensureScoreData();
+
+        selectedCol--;
+
+        if (selectedCol < 0) {
+            selectedRow--;
+
+            if (selectedRow < 0) {
+                selectedRow = 0;
+                selectedCol = 0;
+            } else {
+                selectedCol = scoreData[selectedRow].length - 1;
+            }
+        }
+
+        renderScore();
+    }
+
+    function addLine(needRender = true) {
+        ensureScoreData();
+
+        let colCount = 16;
+
+        if (scoreData.length > 0 && Array.isArray(scoreData[0])) {
+            colCount = scoreData[0].length;
+        }
+
+        const newLine = [];
+
+        for (let i = 0; i < colCount; i++) {
+            newLine.push(makeEmptyCell());
+        }
+
+        scoreData.push(newLine);
+
+        if (needRender) {
+            selectedRow = scoreData.length - 1;
+            selectedCol = 0;
+            renderScore();
+        }
+    }
+
+    function addColumn() {
+        ensureScoreData();
+
+        for (let row = 0; row < scoreData.length; row++) {
+            scoreData[row].push(makeEmptyCell());
+        }
+
+        renderScore();
+    }
+
+    function clearAll() {
+        if (!confirm("确定要清空整首谱子吗？")) {
+            return;
+        }
+
+        for (let row = 0; row < scoreData.length; row++) {
+            for (let col = 0; col < scoreData[row].length; col++) {
+                scoreData[row][col] = makeEmptyCell();
+            }
+        }
+
+        selectedRow = 0;
+        selectedCol = 0;
+        renderScore();
+    }
+
+    function zoomIn() {
+        fontScale += 0.1;
+
+        if (fontScale > 1.5) {
+            fontScale = 1.5;
+        }
+
+        renderScore();
+    }
+
+    function zoomOut() {
+        fontScale -= 0.1;
+
+        if (fontScale < 0.8) {
+            fontScale = 0.8;
+        }
+
+        renderScore();
+    }
+
+    function getCsrfToken() {
+        const name = "csrftoken";
+        const cookies = document.cookie.split(";");
+
+        for (let i = 0; i < cookies.length; i++) {
+            const cookie = cookies[i].trim();
+
+            if (cookie.startsWith(name + "=")) {
+                return decodeURIComponent(cookie.substring(name.length + 1));
+            }
+        }
+
+        return "";
+    }
+
+    async function saveScore() {
+        try {
+            ensureScoreData();
+    
+            const titleEl = document.getElementById("titleInput");
+            const keyEl = document.getElementById("keyInput");
+            const timeEl = document.getElementById("timeInput");
+            const tempoEl = document.getElementById("tempoInput");
+    
+            if (!titleEl || !keyEl || !timeEl || !tempoEl) {
+                alert("保存失败：页面字段 ID 不完整，请检查 titleInput/keyInput/timeInput/tempoInput");
+                return;
+            }
+    
+            const payload = {
+                title: titleEl.value,
+                key: keyEl.value,
+                time_signature: timeEl.value,
+                tempo: tempoEl.value,
+                score_data: scoreData
+            };
+    
+            console.log("SAVE PAYLOAD:", payload);
+    
+            const response = await fetch(SAVE_URL, {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/json",
+                    "X-CSRFToken": getCsrfToken()
+                },
+                body: JSON.stringify(payload)
+            });
+    
+            const rawText = await response.text();
+            console.log("SAVE STATUS:", response.status);
+            console.log("SAVE RAW RESPONSE:", rawText);
+    
+            let data = null;
+    
+            try {
+                data = JSON.parse(rawText);
+            } catch (e) {
+                alert("保存失败：后端返回的不是 JSON，请看 Console 里的 SAVE RAW RESPONSE");
+                return;
+            }
+    
+            const statusText = document.getElementById("statusText");
+    
+            if (statusText) {
+                statusText.textContent = data.message || "已保存";
+                statusText.style.color = data.ok ? "#2e7d32" : "#c62828";
+    
+                setTimeout(function () {
+                    statusText.textContent = "";
+                }, 2000);
+            }
+    
+            if (!data.ok) {
+                alert(data.message || "保存失败");
+            }
+        } catch (error) {
+            console.error("SAVE ERROR:", error);
+            alert("保存失败：" + error.message);
+        }
+    }
+
+    async function deleteScore() {
+        if (!confirm("确定要删除这首谱子吗？删除后不能恢复。")) {
+            return;
+        }
+
+        const response = await fetch(DELETE_URL, {
+            method: "POST",
+            headers: {
+                "X-CSRFToken": getCsrfToken()
+            }
+        });
+
+        const data = await response.json();
+
+        if (data.ok) {
+            window.location.href = LIST_URL;
+        } else {
+            alert(data.message || "删除失败");
+        }
+    }
+
+    function getFrequency(note, octave) {
+        const key = document.getElementById("keyInput").value || "1=C";
+        const baseMap = {
+            "1=C": 261.63,
+            "1=#C": 277.18,
+            "1=bD": 277.18,
+        
+            "1=D": 293.66,
+            "1=#D": 311.13,
+            "1=bE": 311.13,
+        
+            "1=E": 329.63,
+        
+            "1=F": 349.23,
+            "1=#F": 369.99,
+            "1=bG": 369.99,
+        
+            "1=G": 392.00,
+            "1=#G": 415.30,
+            "1=bA": 415.30,
+        
+            "1=A": 440.00,
+            "1=#A": 466.16,
+            "1=bB": 466.16,
+        
+            "1=B": 493.88
+        };
+
+        const base = baseMap[key] || 261.63;
+
+        const ratioMap = {
+            "1": 1,
+            "2": Math.pow(2, 2 / 12),
+            "3": Math.pow(2, 4 / 12),
+            "4": Math.pow(2, 5 / 12),
+            "5": Math.pow(2, 7 / 12),
+            "6": Math.pow(2, 9 / 12),
+            "7": Math.pow(2, 11 / 12)
+        };
+
+        let frequency = base * (ratioMap[note] || 1);
+
+        if (octave === 1) {
+            frequency *= 2;
+        }
+
+        if (octave === -1) {
+            frequency /= 2;
+        }
+
+        return frequency;
+    }
+
+    function playTone(frequency, startTime, duration) {
+        if (!audioContext) {
+            audioContext = new AudioContext();
+        }
+
+        const oscillator = audioContext.createOscillator();
+        const gainNode = audioContext.createGain();
+
+        oscillator.type = "sine";
+        oscillator.frequency.setValueAtTime(frequency, startTime);
+
+        gainNode.gain.setValueAtTime(0.0001, startTime);
+        gainNode.gain.exponentialRampToValueAtTime(0.3, startTime + 0.02);
+        gainNode.gain.exponentialRampToValueAtTime(0.0001, startTime + duration);
+
+        oscillator.connect(gainNode);
+        gainNode.connect(audioContext.destination);
+
+        oscillator.start(startTime);
+        oscillator.stop(startTime + duration);
+    }
+
+    function flattenScoreData() {
+        const items = [];
+
+        for (let row = 0; row < scoreData.length; row++) {
+            for (let col = 0; col < scoreData[row].length; col++) {
+                const cell = normalizeCell(scoreData[row][col]);
+
+                if (cell.note === "") {
+                    continue;
+                }
+
+                items.push({
+                    cell: cell,
+                    row: row,
+                    col: col
+                });
+            }
+        }
+
+        return items;
+    }
+
+    function highlightPlaying(row, col) {
+        const lines = document.querySelectorAll(".score-line");
+
+        document.querySelectorAll(".cell").forEach(function (cell) {
+            cell.classList.remove("playing");
+        });
+
+        if (!lines[row]) {
+            return;
+        }
+
+        const cells = lines[row].querySelectorAll(".cell");
+
+        if (!cells[col]) {
+            return;
+        }
+
+        cells[col].classList.add("playing");
+    }
+
+    function clearPlayingHighlight() {
+        document.querySelectorAll(".cell").forEach(function (cell) {
+            cell.classList.remove("playing");
+        });
+    }
+
+    function stopPlay() {
+        isPlaying = false;
+
+        for (let i = 0; i < playingTimers.length; i++) {
+            clearTimeout(playingTimers[i]);
+        }
+
+        playingTimers = [];
+        clearPlayingHighlight();
+    }
+
+    function playScore() {
+        stopPlay();
+        ensureScoreData();
+
+        if (!audioContext) {
+            audioContext = new AudioContext();
+        }
+
+        const tempo = parseInt(document.getElementById("tempoInput").value || "90", 10);
+        const beatDuration = 60 / tempo;
+
+        const items = flattenScoreData();
+
+        if (items.length === 0) {
+            alert("谱子还是空的，请先输入几个音符。");
+            return;
+        }
+
+        isPlaying = true;
+
+        let currentTime = audioContext.currentTime + 0.1;
+        let visualDelayMs = 0;
+
+        for (let i = 0; i < items.length; i++) {
+            const item = items[i];
+            const cell = item.cell;
+            const note = cell.note;
+
+            if (note === "|") {
+                continue;
+            }
+
+            let duration = beatDuration;
+
+            if (cell.duration === "eighth") {
+                duration = beatDuration / 2;
+            }
+
+            const timer = setTimeout(function () {
+                if (!isPlaying) {
+                    return;
+                }
+
+                highlightPlaying(item.row, item.col);
+            }, visualDelayMs);
+
+            playingTimers.push(timer);
+
+            if (note === "-" || note === "0") {
+                currentTime += duration;
+                visualDelayMs += duration * 1000;
+                continue;
+            }
+
+            if (["1", "2", "3", "4", "5", "6", "7"].includes(note)) {
+                const frequency = getFrequency(note, cell.octave);
+                playTone(frequency, currentTime, duration * 0.9);
+                currentTime += duration;
+                visualDelayMs += duration * 1000;
+            }
+        }
+
+        const endTimer = setTimeout(function () {
+            stopPlay();
+        }, visualDelayMs + 300);
+
+        playingTimers.push(endTimer);
+    }
+
+    document.getElementById("lyricInput").addEventListener("keydown", function (event) {
+        if (event.key === "Enter") {
+            moveNextLyric();
+        }
+    });
+
+    renderScore();
+</script>
+</body>
+</html>

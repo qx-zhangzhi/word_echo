@@ -1,0 +1,425 @@
+{% extends "base.html" %}
+
+{% block extra_css %}
+.synonym-shell {
+    padding-bottom: 20px;
+}
+
+.synonym-header {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: 12px;
+    margin-bottom: 14px;
+}
+
+.synonym-title {
+    margin: 0;
+    font-size: 26px;
+    line-height: 1.2;
+    font-weight: 900;
+}
+
+.synonym-subtitle {
+    margin-top: 6px;
+    color: #6b7280;
+    font-size: 14px;
+    line-height: 1.5;
+}
+
+.icon-link,
+.icon-btn {
+    width: auto;
+    min-height: 40px;
+    border-radius: 12px;
+    padding: 0 14px;
+    border: 1px solid #d7dde8;
+    background: #fff;
+    color: #1f2937;
+    font-size: 14px;
+    font-weight: 800;
+}
+
+.action-row {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: 10px;
+    margin-top: 18px;
+}
+
+.ai-panel {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: 10px;
+    padding: 14px;
+    border: 1px solid #dbeafe;
+    border-radius: 16px;
+    background: #eff6ff;
+    margin: 12px 0 16px;
+}
+
+.ai-copy {
+    color: #1e3a8a;
+    font-size: 14px;
+    line-height: 1.55;
+}
+
+.ai-status {
+    min-height: 20px;
+    color: #64748b;
+    font-size: 13px;
+    line-height: 1.5;
+}
+
+.ai-status.is-error {
+    color: #dc2626;
+}
+
+.ai-status.is-success {
+    color: #047857;
+}
+
+.field-grid {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: 14px;
+}
+
+.hidden-field {
+    display: none;
+}
+
+.input,
+.textarea {
+    border-radius: 12px;
+}
+
+.result-panel {
+    margin-top: 16px;
+    border: 1px solid #d8e3f2;
+    border-radius: 16px;
+    background: #fff;
+    overflow: hidden;
+}
+
+.result-panel-head {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: 10px;
+    padding: 14px;
+    border-bottom: 1px solid #edf2f7;
+    background: #f8fafc;
+}
+
+.result-title {
+    margin: 0;
+    color: #111827;
+    font-size: 17px;
+    font-weight: 900;
+    line-height: 1.3;
+}
+
+.result-meta {
+    margin-top: 4px;
+    color: #64748b;
+    font-size: 13px;
+    line-height: 1.45;
+}
+
+.result-badge {
+    flex: 0 0 auto;
+    border-radius: 999px;
+    padding: 6px 10px;
+    background: #ecfdf5;
+    color: #047857;
+    font-size: 12px;
+    font-weight: 900;
+}
+
+.result-empty {
+    padding: 18px 14px;
+    color: #64748b;
+    font-size: 14px;
+    line-height: 1.6;
+}
+
+.result-list {
+    display: grid;
+    gap: 10px;
+    padding: 12px;
+}
+
+.result-item {
+    border: 1px solid #e5eaf1;
+    border-radius: 12px;
+    padding: 12px;
+    background: #ffffff;
+}
+
+.result-word {
+    color: #111827;
+    font-size: 18px;
+    font-weight: 900;
+    line-height: 1.25;
+}
+
+.result-context {
+    margin-top: 4px;
+    color: #2563eb;
+    font-size: 13px;
+    font-weight: 800;
+    line-height: 1.4;
+}
+
+.result-sentence {
+    margin-top: 10px;
+    padding: 10px 12px;
+    border-radius: 10px;
+    background: #f8fafc;
+    color: #1f2937;
+    font-size: 15px;
+    line-height: 1.55;
+}
+
+.result-note {
+    margin-top: 10px;
+    color: #4b5563;
+    font-size: 14px;
+    line-height: 1.6;
+}
+
+.result-section {
+    padding: 14px;
+    border-top: 1px solid #edf2f7;
+}
+
+.result-section-title {
+    color: #334155;
+    font-size: 13px;
+    font-weight: 900;
+}
+
+.result-section-text {
+    margin-top: 8px;
+    color: #1f2937;
+    font-size: 15px;
+    line-height: 1.7;
+    white-space: pre-wrap;
+}
+
+.table-hint {
+    margin-top: 8px;
+    color: #4b5563;
+    font-size: 13px;
+    line-height: 1.55;
+}
+
+.error-box {
+    border: 1px solid #fecaca;
+    background: #fef2f2;
+    color: #991b1b;
+    border-radius: 14px;
+    padding: 12px;
+    margin-bottom: 14px;
+    font-size: 14px;
+    line-height: 1.5;
+}
+
+@media (min-width: 520px) {
+    .action-row {
+        grid-template-columns: 1fr 1fr;
+    }
+
+    .result-list {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+}
+{% endblock %}
+
+{% block content %}
+<div class="synonym-shell">
+    <div class="synonym-header">
+        <div>
+            <h1 class="synonym-title">{% if mode == "create" %}新建替换词组{% else %}编辑替换词组{% endif %}</h1>
+            <div class="synonym-subtitle">先填你知道的一组词组，再让 AI 补充固定句、区别和替换练习。</div>
+        </div>
+        <a href="{% url 'synonym_list' %}" class="btn icon-link">返回</a>
+    </div>
+
+    <form method="post" class="card">
+        {% csrf_token %}
+
+        {% if form.errors %}
+        <div class="error-box">请检查表单内容。{{ form.errors }}</div>
+        {% endif %}
+
+        <div class="field-grid">
+            <div class="form-field">
+                <label class="form-label">主题 / 核心意思</label>
+                {{ form.headword }}
+                <div class="form-help">例如 important、increase、解决问题、表达观点。</div>
+            </div>
+
+            <div class="form-field">
+                <label class="form-label">中文释义</label>
+                {{ form.meaning_cn }}
+            </div>
+
+            <div class="form-field">
+                <label class="form-label">我已知道的词组（可选）</label>
+                <textarea id="known_words_input" class="textarea" rows="4" placeholder="每行一个词或词组，例如：&#10;important&#10;essential&#10;vital"></textarea>
+                <div class="table-hint">只填你已经想到的词组即可。AI 生成后，下方会显示整理好的结果卡片。</div>
+            </div>
+        </div>
+
+        <div class="hidden-field">
+            {{ form.synonym_words }}
+            {{ form.usage_note }}
+            {{ form.example_sentence }}
+        </div>
+
+        <div class="ai-panel">
+            <div class="ai-copy">AI 会保留输入框里的词组，并补足常用近义表达、固定句子和差异说明。</div>
+            <button type="button" id="ai-generate" class="btn btn-secondary">AI 补充这一组</button>
+            <div id="ai-status" class="ai-status"></div>
+        </div>
+
+        <div class="result-panel" aria-live="polite">
+            <div class="result-panel-head">
+                <div>
+                    <h2 class="result-title">AI 整理结果</h2>
+                    <div class="result-meta">结果会以卡片保存，不需要手工改表格文本。</div>
+                </div>
+                <div class="result-badge">只读预览</div>
+            </div>
+            <div id="result-empty" class="result-empty">还没有生成结果。输入主题后点击“AI 补充这一组”。</div>
+            <div id="result-list" class="result-list"></div>
+            <div id="result-summary" class="result-section hidden-field">
+                <div class="result-section-title">整体区别总结</div>
+                <div id="result-summary-text" class="result-section-text"></div>
+            </div>
+            <div id="result-practice" class="result-section hidden-field">
+                <div class="result-section-title">主动替换练习句</div>
+                <div id="result-practice-text" class="result-section-text"></div>
+            </div>
+        </div>
+
+        <div class="action-row">
+            <button type="submit" class="btn btn-primary">保存</button>
+            {% if mode == "update" and entry %}
+            <a href="{% url 'synonym_detail' entry.pk %}" class="btn btn-secondary">取消</a>
+            {% else %}
+            <a href="{% url 'synonym_list' %}" class="btn btn-secondary">取消</a>
+            {% endif %}
+        </div>
+    </form>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+document.addEventListener("DOMContentLoaded", function () {
+    document.querySelectorAll("input, textarea, select").forEach(function (el) {
+        if (el.type === "checkbox" || el.type === "radio") return;
+        if (el.closest(".hidden-field")) return;
+        el.classList.add(el.tagName === "TEXTAREA" ? "textarea" : "input");
+    });
+
+    const button = document.getElementById("ai-generate");
+    const status = document.getElementById("ai-status");
+    const knownInput = document.getElementById("known_words_input");
+    const synonymField = document.getElementById("id_synonym_words");
+    const usageField = document.getElementById("id_usage_note");
+    const practiceField = document.getElementById("id_example_sentence");
+    const resultEmpty = document.getElementById("result-empty");
+    const resultList = document.getElementById("result-list");
+    const resultSummary = document.getElementById("result-summary");
+    const resultSummaryText = document.getElementById("result-summary-text");
+    const resultPractice = document.getElementById("result-practice");
+    const resultPracticeText = document.getElementById("result-practice-text");
+    const form = document.querySelector("form");
+
+    function splitRow(row) {
+        return row.split("|").map(function (part) { return part.trim(); });
+    }
+
+    function renderResults() {
+        const rows = synonymField.value.split(/\r?\n/).map(function (line) {
+            return line.trim();
+        }).filter(Boolean);
+
+        resultList.innerHTML = "";
+        rows.forEach(function (row) {
+            const parts = splitRow(row);
+            const item = document.createElement("div");
+            item.className = "result-item";
+            item.innerHTML = [
+                "<div class=\"result-word\"></div>",
+                "<div class=\"result-context\"></div>",
+                "<div class=\"result-sentence\"></div>",
+                "<div class=\"result-note\"></div>"
+            ].join("");
+            item.querySelector(".result-word").textContent = parts[0] || "未命名词组";
+            item.querySelector(".result-context").textContent = parts[1] || "通用表达";
+            item.querySelector(".result-sentence").textContent = parts[2] || "暂无固定句";
+            item.querySelector(".result-note").textContent = parts[3] || "暂无区别说明";
+            resultList.appendChild(item);
+        });
+
+        resultEmpty.classList.toggle("hidden-field", rows.length > 0);
+        resultSummary.classList.toggle("hidden-field", !usageField.value.trim());
+        resultSummaryText.textContent = usageField.value.trim();
+        resultPractice.classList.toggle("hidden-field", !practiceField.value.trim());
+        resultPracticeText.textContent = practiceField.value.trim();
+    }
+
+    knownInput.value = synonymField.value.split(/\r?\n/).map(function (line) {
+        return splitRow(line)[0] || "";
+    }).filter(Boolean).join("\n");
+    renderResults();
+
+    form.addEventListener("submit", function () {
+        if (!synonymField.value.trim()) {
+            synonymField.value = knownInput.value.trim();
+        }
+    });
+
+    button.addEventListener("click", async function () {
+        const headword = document.getElementById("id_headword").value.trim();
+        const knownWords = knownInput.value.trim();
+        if (!headword) {
+            status.className = "ai-status is-error";
+            status.textContent = "请先输入主题或核心意思";
+            return;
+        }
+        button.disabled = true;
+        status.className = "ai-status";
+        status.textContent = "正在补充固定句和区别...";
+        try {
+            const response = await fetch("{% url 'synonym_ai_generate' %}", {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/x-www-form-urlencoded;charset=UTF-8",
+                    "X-CSRFToken": document.querySelector("[name=csrfmiddlewaretoken]").value
+                },
+                body: new URLSearchParams({headword: headword, known_words: knownWords}).toString()
+            });
+            const data = await response.json();
+            if (!response.ok) throw new Error(data.error || "生成失败");
+            ["meaning_cn", "synonym_words", "usage_note", "example_sentence"].forEach(function (name) {
+                if (data[name]) document.getElementById("id_" + name).value = data[name];
+            });
+            renderResults();
+            status.className = "ai-status is-success";
+            status.textContent = "已整理成下方结果卡片，可以直接保存";
+        } catch (error) {
+            status.className = "ai-status is-error";
+            status.textContent = error.message || "生成失败，请稍后重试";
+        } finally {
+            button.disabled = false;
+        }
+    });
+});
+</script>
+{% endblock %}

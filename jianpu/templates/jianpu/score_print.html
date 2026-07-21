@@ -1,0 +1,235 @@
+<!-- jianpu/templates/jianpu/score_print.html -->
+
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <title>{{ score.title }} - 打印</title>
+    <style>
+        body {
+            margin: 0;
+            background: #f5f5f5;
+            font-family: Arial, "Microsoft YaHei", sans-serif;
+            color: #111;
+        }
+
+        .toolbar {
+            padding: 18px;
+            background: #263238;
+            color: white;
+            display: flex;
+            gap: 12px;
+            align-items: center;
+        }
+
+        .toolbar button {
+            border: none;
+            border-radius: 10px;
+            padding: 14px 24px;
+            font-size: 22px;
+            font-weight: bold;
+            cursor: pointer;
+            background: #1976d2;
+            color: white;
+        }
+
+        .toolbar a {
+            border-radius: 10px;
+            padding: 14px 24px;
+            font-size: 22px;
+            font-weight: bold;
+            background: #616161;
+            color: white;
+            text-decoration: none;
+        }
+
+        .paper {
+            width: 210mm;
+            min-height: 297mm;
+            margin: 20px auto;
+            background: white;
+            padding: 20mm 16mm;
+            box-sizing: border-box;
+            box-shadow: 0 4px 18px rgba(0, 0, 0, 0.18);
+        }
+
+        .title {
+            text-align: center;
+            font-size: 34px;
+            font-weight: bold;
+            margin-bottom: 18px;
+        }
+
+        .meta {
+            text-align: center;
+            font-size: 20px;
+            margin-bottom: 28px;
+        }
+
+        .score-line {
+            display: flex;
+            align-items: center;
+            margin-bottom: 22px;
+            gap: 8px;
+            flex-wrap: nowrap;
+        }
+
+        .cell {
+            width: 44px;
+            height: 78px;
+            text-align: center;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            box-sizing: border-box;
+            flex-shrink: 0;
+        }
+
+        .note-area {
+            height: 48px;
+            position: relative;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .note-core {
+            display: inline-block;
+            font-size: 30px;
+            font-weight: bold;
+            line-height: 34px;
+            position: relative;
+            min-width: 20px;
+        }
+
+        .note-core.eighth {
+            border-bottom: 3px solid #111;
+            padding-bottom: 2px;
+        }
+
+        .upper-dot {
+            position: absolute;
+            top: -18px;
+            left: 50%;
+            transform: translateX(-50%);
+            font-size: 24px;
+            line-height: 18px;
+        }
+
+        .lower-dot {
+            position: absolute;
+            bottom: -16px;
+            left: 50%;
+            transform: translateX(-50%);
+            font-size: 24px;
+            line-height: 18px;
+        }
+
+        .lyric-text {
+            height: 26px;
+            line-height: 26px;
+            font-size: 18px;
+            color: #111;
+            font-weight: bold;
+            overflow: hidden;
+            white-space: nowrap;
+        }
+        .tie-mark {
+            position: absolute;
+            top: 0;
+            left: 3px;
+            right: 3px;
+            height: 16px;
+            border-top: 2px solid #111;
+            border-radius: 50% 50% 0 0;
+            pointer-events: none;
+        }
+        
+        .tie-mark.start {
+            left: 18px;
+            right: -6px;
+        }
+        
+        .tie-mark.middle {
+            left: -6px;
+            right: -6px;
+        }
+        
+        .tie-mark.end {
+            left: -6px;
+            right: 18px;
+        }
+
+        @media print {
+            body {
+                background: white;
+            }
+
+            .toolbar {
+                display: none;
+            }
+
+            .paper {
+                margin: 0;
+                box-shadow: none;
+                width: auto;
+                min-height: auto;
+                padding: 12mm;
+            }
+
+            @page {
+                size: A4;
+                margin: 10mm;
+            }
+        }
+    </style>
+</head>
+<body>
+<div class="toolbar">
+    <button onclick="window.print()">打印 / 保存为 PDF</button>
+    <a href="{% url 'jianpu:score_editor' score.id %}">返回编辑</a>
+</div>
+
+<div class="paper">
+    <div class="title">{{ score.title }}</div>
+
+    <div class="meta">
+        调号：{{ key_display }}
+        &nbsp;&nbsp;&nbsp;
+        拍号：{{ score.time_signature }}
+        &nbsp;&nbsp;&nbsp;
+        速度：{{ score.tempo }}
+    </div>
+
+    {% for row in score_data %}
+        <div class="score-line">
+            {% for cell in row %}
+                <div class="cell">
+                    <div class="note-area">
+                        {% if cell.tie %}
+        			<span class="tie-mark {{ cell.tie }}"></span>
+     			{% endif %}
+
+     			<span class="note-core {% if cell.duration == 'eighth' and cell.note and cell.note != '|' %}eighth{% endif %}">
+                            {% if cell.octave == 1 and cell.note and cell.note != '|' and cell.note != '-' %}
+                                <span class="upper-dot">·</span>
+                            {% endif %}
+
+                            {{ cell.note }}
+
+                            {% if cell.octave == -1 and cell.note and cell.note != '|' and cell.note != '-' %}
+                                <span class="lower-dot">·</span>
+                            {% endif %}
+                        </span>
+                    </div>
+
+                    <div class="lyric-text">
+                        {{ cell.lyric }}
+                    </div>
+                </div>
+            {% endfor %}
+        </div>
+    {% endfor %}
+</div>
+</body>
+</html>

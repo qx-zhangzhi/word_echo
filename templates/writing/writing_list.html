@@ -1,0 +1,79 @@
+{% extends "base.html" %}
+
+{% block title %}雅思写作记录{% endblock %}
+
+{% block content %}
+<div class="top-bar">
+    <a class="back-link" href="/">← 返回首页</a>
+    <div class="top-title">雅思写作记录</div>
+    <div class="top-subtitle">保存作文、查看分数和反复朗读</div>
+</div>
+
+<a href="{% url 'writing_create' %}" class="btn btn-primary">
+    新增作文
+</a>
+
+<div class="section-title">我的作文</div>
+
+{% if entries %}
+    {% for entry in entries %}
+        <a class="card" href="{% url 'writing_detail' entry.pk %}">
+            <div class="card-title">
+                {{ entry.title|default:"未命名作文" }}
+            </div>
+
+            <div class="card-desc">
+                类型：{{ entry.get_task_type_display }}
+                <br>
+                分数：
+                {% if entry.score %}
+                    {{ entry.score }}
+                {% else %}
+                    -
+                {% endif %}
+                <br>
+                更新时间：{{ entry.updated_at|date:"Y-m-d H:i" }}
+            </div>
+
+            <div style="display: flex; gap: 8px; flex-wrap: wrap; margin-top: 12px;">
+                <span style="
+                    display: inline-flex;
+                    padding: 4px 9px;
+                    border-radius: 999px;
+                    background: #eef2ff;
+                    color: #3730a3;
+                    font-size: 12px;
+                    font-weight: 700;
+                ">
+                    {{ entry.get_task_type_display }}
+                </span>
+
+                {% if entry.score %}
+                    <span style="
+                        display: inline-flex;
+                        padding: 4px 9px;
+                        border-radius: 999px;
+                        background: #ecfdf5;
+                        color: #047857;
+                        font-size: 12px;
+                        font-weight: 700;
+                    ">
+                        {{ entry.score }} 分
+                    </span>
+                {% endif %}
+            </div>
+        </a>
+    {% endfor %}
+{% else %}
+    <div class="card">
+        <div class="card-title">还没有写作记录</div>
+        <div class="card-desc">先新增一篇作文，后面可以记录分数、备注和高亮词。</div>
+
+        <div style="margin-top: 14px;">
+            <a href="{% url 'writing_create' %}" class="btn btn-primary">
+                新增作文
+            </a>
+        </div>
+    </div>
+{% endif %}
+{% endblock %}

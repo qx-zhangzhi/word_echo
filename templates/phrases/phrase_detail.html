@@ -1,0 +1,142 @@
+{% extends "base.html" %}
+
+{% block title %}好句详情{% endblock %}
+
+{% block content %}
+<div class="top-bar">
+    <a class="back-link" href="{% url 'phrase_list' %}">← 返回好句列表</a>
+    <div class="top-title">好句详情</div>
+    <div class="top-subtitle">
+        {{ entry.get_category_display }}
+        {% if entry.is_favorite %} · 已收藏{% endif %}
+    </div>
+</div>
+
+<div style="display: flex; gap: 10px; margin-bottom: 12px;">
+    <a href="{% url 'phrase_update' entry.pk %}" class="btn btn-primary" style="flex: 1;">
+        编辑
+    </a>
+
+    <a href="{% url 'phrase_delete' entry.pk %}" class="btn btn-secondary" style="flex: 1;">
+        删除
+    </a>
+</div>
+
+<div class="card">
+    <div style="display: flex; align-items: center; justify-content: space-between; gap: 10px;">
+        <div class="card-title">英文好句</div>
+
+        <button
+            type="button"
+            onclick="playTTS('{{ entry.english_text|escapejs }}')"
+            style="
+                flex: 0 0 auto;
+                width: 48px;
+                height: 48px;
+                border-radius: 16px;
+                border: none;
+                background: #eef2ff;
+                color: #1d4ed8;
+                font-size: 22px;
+                font-weight: 800;
+            "
+        >
+            🔊
+        </button>
+    </div>
+
+    <div style="
+        margin-top: 12px;
+        line-height: 1.9;
+        font-size: 17px;
+        color: #111827;
+        word-break: break-word;
+    ">
+        {{ entry.english_text|linebreaksbr }}
+    </div>
+</div>
+
+<div class="card">
+    <div class="card-title">中文翻译</div>
+
+    <div class="card-desc" style="color: #111827; font-size: 16px;">
+        {{ entry.chinese_text|default:"-"|linebreaksbr }}
+    </div>
+</div>
+
+<div class="card">
+    <div class="card-title">使用说明</div>
+
+    <div class="card-desc">
+        {{ entry.usage_note|default:"-"|linebreaksbr }}
+    </div>
+</div>
+
+<div class="card">
+    <div class="card-title">其他信息</div>
+
+    <div class="card-desc">
+        <div><strong>分类：</strong>{{ entry.get_category_display }}</div>
+
+        <div style="margin-top: 8px;">
+            <strong>来源：</strong>{{ entry.source|default:"-" }}
+        </div>
+
+        <div style="margin-top: 8px;">
+            <strong>收藏：</strong>{% if entry.is_favorite %}是{% else %}否{% endif %}
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+let currentPhraseAudio = null;
+
+function stopCurrentPhraseAudio() {
+    if (currentPhraseAudio) {
+        currentPhraseAudio.pause();
+        currentPhraseAudio.currentTime = 0;
+        currentPhraseAudio = null;
+    }
+}
+
+function fallbackSpeakText(text) {
+    if (!window.speechSynthesis) {
+        alert("当前浏览器不支持语音播放");
+        return;
+    }
+
+    if (!text || !text.trim()) {
+        return;
+    }
+
+    window.speechSynthesis.cancel();
+
+    const utterance = new SpeechSynthesisUtterance(text);
+    utterance.lang = "en-US";
+    utterance.rate = 0.9;
+    utterance.pitch = 1.0;
+
+    window.speechSynthesis.speak(utterance);
+}
+
+function playTTS(text) {
+    if (!text || !text.trim()) {
+        return;
+    }
+
+    stopCurrentPhraseAudio();
+
+    const url = "http://13.218.33.47:5005/tts_get?text=" + encodeURIComponent(text);
+
+    const audio = new Audio(url);
+    currentPhraseAudio = audio;
+
+    audio.play().catch(err => {
+        console.error("播放失败，尝试浏览器朗读", err);
+        fallbackSpeakText(text);
+    });
+}
+</script>
+{% endblock %}
