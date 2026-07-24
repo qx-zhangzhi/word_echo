@@ -26,7 +26,7 @@ SECRET_KEY = 'django-insecure-&v3e#nz_n6y$t)_xmm(_^8z2=axzaat#zn(y6-7sa2(w*g*0xt
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
-ALLOWED_HOSTS = ['10.199.23.106','13.218.33.47']
+ALLOWED_HOSTS = ['8.133.171.147', 'myzzhome.cn', 'www.myzzhome.cn']
 
 
 # Application definition
@@ -140,8 +140,8 @@ LOGIN_URL = "/admin/login/"
 LOGIN_REDIRECT_URL = "/"
 
 # Synonym AI (OpenAI-compatible API).
-SYNONYM_AI_BASE_URL = os.getenv("SYNONYM_AI_BASE_URL", "https://api.openai.com/v1")
-SYNONYM_AI_API_KEY = os.getenv("SYNONYM_AI_API_KEY", "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")
-SYNONYM_AI_MODEL = os.getenv("SYNONYM_AI_MODEL", "gpt-5-mini")
+SYNONYM_AI_BASE_URL = os.getenv("SYNONYM_AI_BASE_URL", "")
+SYNONYM_AI_API_KEY = os.getenv("SYNONYM_AI_API_KEY", "")
+SYNONYM_AI_MODEL = os.getenv("SYNONYM_AI_MODEL", "")
 SYNONYM_AI_TIMEOUT = int(os.getenv("SYNONYM_AI_TIMEOUT", "180"))
 SYNONYM_AI_TEMPERATURE = os.getenv("SYNONYM_AI_TEMPERATURE", "")
