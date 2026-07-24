@@ -1,6 +1,7 @@
 from django.contrib.auth.decorators import login_required
 from django.db import transaction
 from django.http import JsonResponse
+from django.utils.http import urlencode
 from django.utils import timezone
 from django.shortcuts import get_object_or_404, redirect, render
 from django.views.decorators.http import require_POST
@@ -8,7 +9,7 @@ from django.views.decorators.http import require_POST
 from .forms import SynonymEntryForm
 from .models import SynonymEntry, SynonymItem
 from .services import parse_synonym_item_lines
-from .synonym_ai import SynonymAIError, generate_synonym_data
+from .synonym_ai import SynonymAIError, generate_synonym_data, generate_synonym_exam
 
 
 def _replace_synonym_items(entry: SynonymEntry, raw_text: str) -> None:
@@ -62,9 +63,22 @@ def synonym_ai_generate(request):
 
 @login_required
 def synonym_list(request):
-    entries = SynonymEntry.objects.filter(user=request.user).prefetch_related("items")
+    sort = request.GET.get("sort", "created_desc")
+    sort_options = {
+        "created_desc": ("-created_at", "时间倒序"),
+        "created_asc": ("created_at", "时间正序"),
+    }
+    order_by, sort_label = sort_options.get(sort, sort_options["created_desc"])
+    entries = (
+        SynonymEntry.objects
+        .filter(user=request.user)
+        .prefetch_related("items")
+        .order_by(order_by, "headword")
+    )
     return render(request, "synonyms/synonym_list.html", {
         "entries": entries,
+        "sort": sort if sort in sort_options else "created_desc",
+        "sort_label": sort_label,
     })
 
 
@@ -154,6 +168,78 @@ def synonym_delete(request, pk):
     return render(request, "synonyms/synonym_confirm_delete.html", {
         "entry": entry,
     })
+
+
+def _build_default_exam(entry: SynonymEntry, items: list[SynonymItem]) -> dict:
+    return {
+        "question": entry.example_sentence or f"请写出一个适合表达“{entry.meaning_cn or entry.headword}”的替换词组。",
+        "instruction": "写出一个最合适的英文词或词组。点击 AI 出题可以生成更具体的语境题。",
+        "acceptable_answers": [item.word for item in items],
+        "explanation": "判定会按本组同义词表中的可接受答案进行；答题后会显示区别说明，帮助你确认语境。",
+    }
+
+
+def _exam_context(entry: SynonymEntry, items: list[SynonymItem], exam: dict | None = None, result: dict | None = None, error: str = "") -> dict:
+    exam = exam or _build_default_exam(entry, items)
+    return {
+        "entry": entry,
+        "items": items,
+        "exam": exam,
+        "result": result,
+        "error": error,
+        "answers_text": "\n".join(exam.get("acceptable_answers", [])),
+        "generate_query": urlencode({"generate": "1"}),
+    }
+
+
+@login_required
+def synonym_exam(request, pk):
+    entry = get_object_or_404(
+        SynonymEntry.objects.prefetch_related("items"),
+        pk=pk,
+        user=request.user,
+    )
+    items = list(entry.items.all())
+
+    if request.method == "POST":
+        answer = request.POST.get("answer", "")
+        accepted = [line.strip() for line in request.POST.get("acceptable_answers", "").splitlines() if line.strip()]
+        table_answers = [item.word for item in items]
+        allowed = accepted or table_answers
+        normalized_answer = _normalize_answer(answer)
+        normalized_allowed = {_normalize_answer(value) for value in allowed}
+        is_correct = bool(normalized_answer and normalized_answer in normalized_allowed)
+
+        entry.review_attempts += 1
+        entry.reviewed_at = timezone.now()
+        if is_correct:
+            entry.review_correct += 1
+            entry.is_learned = True
+        else:
+            entry.is_learned = False
+        entry.save(update_fields=["review_attempts", "review_correct", "reviewed_at", "is_learned", "updated_at"])
+
+        exam = {
+            "question": request.POST.get("question", ""),
+            "instruction": request.POST.get("instruction", ""),
+            "acceptable_answers": allowed,
+            "explanation": request.POST.get("explanation", ""),
+        }
+        result = {
+            "is_correct": is_correct,
+            "answer": answer.strip(),
+            "correct_words": allowed,
+        }
+        return render(request, "synonyms/synonym_exam.html", _exam_context(entry, items, exam, result))
+
+    error = ""
+    exam = None
+    if request.GET.get("generate") == "1":
+        try:
+            exam = generate_synonym_exam(entry, items)
+        except SynonymAIError as exc:
+            error = str(exc)
+    return render(request, "synonyms/synonym_exam.html", _exam_context(entry, items, exam, error=error))
 
 
 @login_required

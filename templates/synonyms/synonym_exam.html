@@ -1,0 +1,186 @@
+{% extends "base.html" %}
+
+{% block extra_css %}
+.exam-shell {
+    max-width: 760px;
+    margin: 0 auto;
+}
+
+.exam-head {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: 12px;
+    margin-bottom: 14px;
+}
+
+.exam-title {
+    margin: 0;
+    font-size: 28px;
+    line-height: 1.2;
+    font-weight: 900;
+}
+
+.exam-subtitle {
+    margin-top: 6px;
+    color: #6b7280;
+    font-size: 14px;
+    line-height: 1.5;
+}
+
+.exam-actions {
+    display: flex;
+    gap: 8px;
+    flex: 0 0 auto;
+}
+
+.exam-actions .btn {
+    width: auto;
+    min-width: 82px;
+    min-height: 42px;
+    border-radius: 12px;
+    padding: 0 14px;
+    font-size: 14px;
+}
+
+.question-text {
+    font-size: 21px;
+    line-height: 1.55;
+    font-weight: 900;
+}
+
+.instruction-text {
+    margin-top: 10px;
+    color: #4b5563;
+    font-size: 15px;
+    line-height: 1.6;
+}
+
+.answer-row {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: 10px;
+    margin-top: 16px;
+}
+
+.result-box,
+.error-box {
+    border-radius: 14px;
+    padding: 14px;
+    margin-bottom: 12px;
+    font-size: 15px;
+    line-height: 1.6;
+}
+
+.result-box.is-correct {
+    border: 1px solid #bbf7d0;
+    background: #f0fdf4;
+    color: #166534;
+}
+
+.result-box.is-wrong,
+.error-box {
+    border: 1px solid #fecaca;
+    background: #fef2f2;
+    color: #991b1b;
+}
+
+.exam-explain {
+    margin-top: 12px;
+    padding: 14px;
+    border-radius: 12px;
+    background: #f8fafc;
+    color: #374151;
+    line-height: 1.7;
+    white-space: pre-wrap;
+}
+
+.answer-list {
+    margin-top: 8px;
+    color: #374151;
+}
+
+.word-bank {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    margin-top: 12px;
+}
+
+.word-pill {
+    border: 1px solid #e5e7eb;
+    border-radius: 999px;
+    padding: 6px 10px;
+    background: #fff;
+    color: #374151;
+    font-size: 13px;
+    font-weight: 800;
+}
+
+@media (min-width: 720px) {
+    .answer-row {
+        grid-template-columns: minmax(0, 1fr) 140px;
+        align-items: center;
+    }
+}
+{% endblock %}
+
+{% block content %}
+<div class="exam-shell">
+    <div class="exam-head">
+        <div>
+            <h1 class="exam-title">Exam: {{ entry.headword }}</h1>
+            <div class="exam-subtitle">AI 出一道语境题，提交后按本组可接受答案判定，并显示说明。</div>
+        </div>
+        <div class="exam-actions">
+            <a href="{% url 'synonym_exam' entry.pk %}?{{ generate_query }}" class="btn btn-primary">AI 出题</a>
+            <a href="{% url 'synonym_detail' entry.pk %}" class="btn btn-secondary">返回</a>
+        </div>
+    </div>
+
+    {% if error %}
+    <div class="error-box">{{ error }}</div>
+    {% endif %}
+
+    {% if result %}
+    <div class="result-box {% if result.is_correct %}is-correct{% else %}is-wrong{% endif %}">
+        {% if result.is_correct %}
+        答对了，已标记为已学会。
+        {% else %}
+        这次还没通过，继续保留在待复习里。
+        {% endif %}
+        <div class="answer-list">可接受答案：{{ result.correct_words|join:"、" }}</div>
+    </div>
+    {% endif %}
+
+    <div class="card">
+        <div class="question-text">{{ exam.question }}</div>
+        <div class="instruction-text">{{ exam.instruction }}</div>
+        {% if items %}
+        <form method="post" class="answer-row">
+            {% csrf_token %}
+            <input type="hidden" name="question" value="{{ exam.question }}">
+            <input type="hidden" name="instruction" value="{{ exam.instruction }}">
+            <input type="hidden" name="acceptable_answers" value="{{ answers_text }}">
+            <input type="hidden" name="explanation" value="{{ exam.explanation }}">
+            <input class="input" type="text" name="answer" placeholder="输入英文答案" autocomplete="off" autofocus>
+            <button class="btn btn-primary" type="submit">提交</button>
+        </form>
+        {% else %}
+        <div class="card-desc" style="margin-top: 14px;">这一组还没有可考试的同义词，请先编辑添加。</div>
+        {% endif %}
+        <div class="exam-explain">{{ exam.explanation }}</div>
+    </div>
+
+    <div class="card">
+        <div class="card-title">本组词库</div>
+        <div class="word-bank">
+            {% for item in items %}
+            <span class="word-pill">{{ item.word }}</span>
+            {% empty %}
+            <span class="muted">暂无词组</span>
+            {% endfor %}
+        </div>
+    </div>
+</div>
+{% endblock %}

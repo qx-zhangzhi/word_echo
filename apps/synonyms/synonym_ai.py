@@ -163,3 +163,100 @@ items 必须包含用户已知道的词组；补充项要常用、可写进 IELT
         "usage_note": str(data.get("usage_note", "")).strip(),
         "example_sentence": str(data.get("practice_sentence") or data.get("example_sentence", "")).strip(),
     }
+
+
+def generate_synonym_exam(entry, items) -> dict[str, Any]:
+    word = (entry.headword or "").strip()
+    if not word:
+        raise SynonymAIError("请先输入核心词。")
+    api_key = settings.SYNONYM_AI_API_KEY
+    if not api_key:
+        raise SynonymAIError("尚未配置同义词 AI API，请设置 SYNONYM_AI_API_KEY。")
+
+    item_lines = "\n".join(
+        " | ".join(part for part in [
+            item.word,
+            item.usage_context,
+            item.fixed_sentence,
+            item.comparison_note or item.note,
+        ] if part)
+        for item in items
+    )
+    if not item_lines:
+        raise SynonymAIError("这一组还没有可考试的词组，请先添加同义词。")
+
+    prompt = f"""你是 IELTS 写作词汇教练。请基于下面这组同义词实时生成一道主动回忆题，目标是让学生真正掌握语境差异，而不是只背中文意思。
+主题：{word}
+中文释义：{entry.meaning_cn or "未填写"}
+整体说明：{entry.usage_note or "未填写"}
+同义词表：
+{item_lines}
+
+只返回合法 JSON，不要输出 Markdown，格式如下：
+{{
+  "question": "英文或中文题干，包含具体写作语境，要求学生填一个最合适的替换表达",
+  "instruction": "一句中文作答要求",
+  "acceptable_answers": ["必须来自同义词表中的一个或多个可接受英文答案"],
+  "explanation": "中文说明：为什么这些答案合适，以及容易错用哪些词"
+}}
+acceptable_answers 必须完全使用同义词表里的英文词/词组；题目要能区分语境，不要泛泛问同义词。"""
+    request_data: dict[str, Any] = {
+        "model": settings.SYNONYM_AI_MODEL,
+        "messages": [
+            {"role": "system", "content": "你必须只返回合法 JSON。"},
+            {"role": "user", "content": prompt},
+        ],
+        "timeout": settings.SYNONYM_AI_TIMEOUT,
+    }
+    temperature = str(getattr(settings, "SYNONYM_AI_TEMPERATURE", "")).strip()
+    if temperature:
+        request_data["temperature"] = float(temperature)
+
+    try:
+        response = OpenAI(api_key=api_key, base_url=settings.SYNONYM_AI_BASE_URL).chat.completions.create(
+            **request_data
+        )
+        data = _parse_json(response.choices[0].message.content or "")
+    except SynonymAIError:
+        raise
+    except AuthenticationError as exc:
+        logger.exception("Synonym exam AI authentication failed")
+        raise SynonymAIError("同义词 AI API Key 无效或已过期，请检查 SYNONYM_AI_API_KEY。") from exc
+    except PermissionDeniedError as exc:
+        logger.exception("Synonym exam AI permission denied")
+        raise SynonymAIError("当前 API Key 没有访问同义词 AI 模型的权限。") from exc
+    except NotFoundError as exc:
+        logger.exception("Synonym exam AI model not found: %s", settings.SYNONYM_AI_MODEL)
+        raise SynonymAIError(f"同义词 AI 模型不可用：{settings.SYNONYM_AI_MODEL}。请检查 SYNONYM_AI_MODEL。") from exc
+    except BadRequestError as exc:
+        logger.exception("Synonym exam AI request was rejected for %r", word)
+        raise SynonymAIError("同义词 AI 请求参数不被模型支持，请检查模型和 temperature 配置。") from exc
+    except RateLimitError as exc:
+        logger.exception("Synonym exam AI rate limited")
+        raise SynonymAIError("同义词 AI 请求过于频繁或额度不足，请稍后重试。") from exc
+    except (APITimeoutError, APIConnectionError) as exc:
+        logger.exception("Synonym exam AI request timed out or could not connect for %r", word)
+        raise SynonymAIError("同义词 AI 连接超时，请稍后重试；必要时调大 SYNONYM_AI_TIMEOUT。") from exc
+    except Exception as exc:
+        logger.exception("Synonym exam AI request failed for %r", word)
+        raise SynonymAIError("AI 服务暂时不可用，请稍后重试或手工填写。") from exc
+
+    known = {item.word.casefold(): item.word for item in items}
+    answers = []
+    raw_answers = data.get("acceptable_answers", [])
+    if isinstance(raw_answers, str):
+        raw_answers = [raw_answers]
+    if isinstance(raw_answers, list):
+        for answer in raw_answers:
+            lowered = str(answer).strip().casefold()
+            if lowered in known and known[lowered] not in answers:
+                answers.append(known[lowered])
+    if not answers:
+        answers = [items[0].word]
+
+    return {
+        "question": str(data.get("question", "")).strip() or f"请写出一个适合表达“{entry.meaning_cn or word}”的替换词组。",
+        "instruction": str(data.get("instruction", "")).strip() or "写出一个最合适的英文词或词组。",
+        "acceptable_answers": answers,
+        "explanation": str(data.get("explanation", "")).strip() or "答案需要符合题目语境，并能自然写进 IELTS 句子。",
+    }

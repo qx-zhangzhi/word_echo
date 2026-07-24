@@ -168,9 +168,24 @@
     font-size: 14px;
     line-height: 1.6;
 }
+
+@media (min-width: 900px) {
+    .detail-page {
+        max-width: 1120px;
+        margin: 0 auto;
+    }
+
+    .detail-content-grid {
+        display: grid;
+        grid-template-columns: minmax(0, 1.45fr) minmax(320px, 0.55fr);
+        gap: 12px;
+        align-items: start;
+    }
+}
 {% endblock %}
 
 {% block content %}
+<div class="detail-page">
 <div class="detail-header">
     <div>
         <h1 class="detail-title">{{ entry.headword }}</h1>
@@ -179,12 +194,14 @@
     </div>
     <div class="header-actions">
         <button type="button" class="btn btn-secondary" onclick="speakText('{{ entry.headword|escapejs }}')">朗读</button>
-        <a href="{% url 'synonym_review' entry.pk %}" class="btn btn-primary">测试</a>
+        <a href="{% url 'synonym_exam' entry.pk %}" class="btn btn-primary">Exam</a>
+        <a href="{% url 'synonym_review' entry.pk %}" class="btn btn-secondary">复习</a>
         <a href="{% url 'synonym_update' entry.pk %}" class="btn btn-secondary">编辑</a>
         <a href="{% url 'synonym_list' %}" class="btn btn-secondary">返回</a>
     </div>
 </div>
 
+<div class="detail-content-grid">
 <div class="card">
     <div class="card-title">区别对比表</div>
     <div class="card-desc">按 IELTS 使用场景分组，横向对比来源、正式程度、搭配和易混点。</div>
@@ -219,6 +236,7 @@
     </div>
 </div>
 
+<div>
 <div class="card">
     <div class="card-title">主动替换练习</div>
     <div class="card-desc">点击不同词组，观察同一句里替换后的表达差异。</div>
@@ -236,6 +254,9 @@
 
 <div class="card">
     <a href="{% url 'synonym_delete' entry.pk %}" class="btn btn-secondary">删除这一组</a>
+</div>
+</div>
+</div>
 </div>
 
 {{ practice_items|json_script:"practice-items" }}

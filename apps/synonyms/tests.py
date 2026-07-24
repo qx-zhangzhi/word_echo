@@ -1,14 +1,16 @@
 from types import SimpleNamespace
 from unittest.mock import patch
+from datetime import timedelta
 
 from django.contrib.auth import get_user_model
 from django.test import TestCase, override_settings
+from django.utils import timezone
 from django.urls import reverse
 from openai import APITimeoutError, BadRequestError, NotFoundError
 
 from .models import SynonymEntry
 from .services import parse_synonym_item_lines, parse_synonym_words
-from .synonym_ai import SynonymAIError, generate_synonym_data
+from .synonym_ai import SynonymAIError, generate_synonym_data, generate_synonym_exam
 
 
 class ParseSynonymWordsTests(TestCase):
@@ -89,6 +91,22 @@ class SynonymAITests(TestCase):
         )
         with self.assertRaisesMessage(SynonymAIError, "模型不可用"):
             generate_synonym_data("limit")
+
+    @patch("apps.synonyms.synonym_ai.OpenAI")
+    def test_generate_exam_uses_known_answers(self, openai):
+        user = get_user_model().objects.create_user("exam-ai", password="pw")
+        entry = SynonymEntry.objects.create(user=user, headword="money", meaning_cn="钱")
+        item = entry.items.create(word="revenue", usage_context="company")
+        content = '{"question":"公司收入增加应该用哪个词？","instruction":"写一个词","acceptable_answers":["revenue","wrong"],"explanation":"revenue 用于公司收入。"}'
+        openai.return_value.chat.completions.create.return_value = SimpleNamespace(
+            choices=[SimpleNamespace(message=SimpleNamespace(content=content))]
+        )
+        self.assertEqual(generate_synonym_exam(entry, [item]), {
+            "question": "公司收入增加应该用哪个词？",
+            "instruction": "写一个词",
+            "acceptable_answers": ["revenue"],
+            "explanation": "revenue 用于公司收入。",
+        })
 
     def test_endpoint_requires_login(self):
         response = self.client.post(reverse("synonym_ai_generate"), {"headword": "good"})
@@ -179,3 +197,41 @@ class SynonymReviewTests(TestCase):
         self.assertEqual(response.status_code, 200)
         self.assertContains(response, entry.headword)
         self.assertContains(response, "待复习")
+
+
+class SynonymExamTests(TestCase):
+    def _create_entry(self):
+        user = get_user_model().objects.create_user("examiner", password="pw")
+        entry = SynonymEntry.objects.create(user=user, headword="money", meaning_cn="钱")
+        entry.items.create(word="revenue", usage_context="公司收入")
+        entry.items.create(word="income", usage_context="个人收入")
+        return user, entry
+
+    def test_exam_correct_answer_marks_entry_learned(self):
+        user, entry = self._create_entry()
+        self.client.force_login(user)
+        response = self.client.post(reverse("synonym_exam", args=[entry.pk]), {
+            "question": "公司收入增加应该用哪个词？",
+            "instruction": "写一个词",
+            "acceptable_answers": "revenue",
+            "explanation": "revenue 用于公司收入。",
+            "answer": " Revenue ",
+        })
+        self.assertEqual(response.status_code, 200)
+        entry.refresh_from_db()
+        self.assertTrue(entry.is_learned)
+        self.assertEqual(entry.review_attempts, 1)
+        self.assertEqual(entry.review_correct, 1)
+        self.assertContains(response, "revenue 用于公司收入")
+
+    def test_list_can_sort_by_created_time(self):
+        user, entry = self._create_entry()
+        later = SynonymEntry.objects.create(user=user, headword="later", meaning_cn="后来的")
+        now = timezone.now()
+        SynonymEntry.objects.filter(pk=entry.pk).update(created_at=now - timedelta(days=1))
+        SynonymEntry.objects.filter(pk=later.pk).update(created_at=now)
+        self.client.force_login(user)
+        response = self.client.get(reverse("synonym_list"), {"sort": "created_asc"})
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual([item.headword for item in response.context["entries"]], ["money", "later"])
+        self.assertEqual(response.context["sort"], "created_asc")

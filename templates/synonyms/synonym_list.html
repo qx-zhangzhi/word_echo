@@ -29,6 +29,40 @@
     flex: 0 0 auto;
 }
 
+.list-toolbar {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 10px;
+    margin-bottom: 12px;
+}
+
+.sort-tabs {
+    display: inline-flex;
+    border: 1px solid #d7dde8;
+    border-radius: 12px;
+    overflow: hidden;
+    background: #fff;
+}
+
+.sort-tab {
+    padding: 10px 12px;
+    color: #475569;
+    font-size: 13px;
+    font-weight: 900;
+}
+
+.sort-tab.is-active {
+    background: #111827;
+    color: #fff;
+}
+
+.entry-grid {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: 12px;
+}
+
 .add-btn {
     width: auto;
     min-width: 96px;
@@ -103,9 +137,26 @@
 .empty-card {
     text-align: center;
 }
+
+@media (min-width: 900px) {
+    .list-page {
+        max-width: 1120px;
+        margin: 0 auto;
+    }
+
+    .entry-grid {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+        align-items: stretch;
+    }
+
+    .entry-card {
+        min-height: 168px;
+    }
+}
 {% endblock %}
 
 {% block content %}
+<div class="list-page">
 <div class="list-header">
     <div>
         <h1 class="list-title">替换词组</h1>
@@ -117,7 +168,16 @@
     </div>
 </div>
 
+<div class="list-toolbar">
+    <div class="card-desc">当前排序：{{ sort_label }}</div>
+    <div class="sort-tabs" aria-label="排序">
+        <a class="sort-tab {% if sort == 'created_desc' %}is-active{% endif %}" href="?sort=created_desc">时间倒序</a>
+        <a class="sort-tab {% if sort == 'created_asc' %}is-active{% endif %}" href="?sort=created_asc">时间正序</a>
+    </div>
+</div>
+
 {% if entries %}
+<div class="entry-grid">
     {% for entry in entries %}
     <a href="{% url 'synonym_detail' entry.pk %}" class="card entry-card">
         <div class="entry-top">
@@ -139,6 +199,7 @@
         </div>
     </a>
     {% endfor %}
+</div>
 {% else %}
 <div class="card empty-card">
     <div class="card-title">还没有替换词组</div>
@@ -146,4 +207,5 @@
     <a href="{% url 'synonym_create' %}" class="btn btn-primary" style="margin-top: 14px;">新增第一组</a>
 </div>
 {% endif %}
+</div>
 {% endblock %}
