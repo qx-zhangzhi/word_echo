@@ -1,6 +1,12 @@
 {% extends "base.html" %}
 
 {% block extra_css %}
+@media (min-width: 900px) {
+    .mobile-container {
+        max-width: 1120px;
+    }
+}
+
 .list-header {
     display: flex;
     align-items: flex-start;

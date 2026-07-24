@@ -1,6 +1,12 @@
 {% extends "base.html" %}
 
 {% block extra_css %}
+@media (min-width: 900px) {
+    .mobile-container {
+        max-width: 720px;
+    }
+}
+
 .review-shell {
     max-width: 720px;
     margin: 0 auto;

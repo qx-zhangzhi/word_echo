@@ -1,6 +1,12 @@
 {% extends "base.html" %}
 
 {% block extra_css %}
+@media (min-width: 900px) {
+    .mobile-container {
+        max-width: 760px;
+    }
+}
+
 .exam-shell {
     max-width: 760px;
     margin: 0 auto;

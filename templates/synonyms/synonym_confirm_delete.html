@@ -1,5 +1,14 @@
 {% extends "base.html" %}
 
+{% block extra_css %}
+@media (min-width: 900px) {
+    .mobile-container {
+        max-width: 720px;
+    }
+}
+
+{% endblock %}
+
 {% block content %}
 <h2 class="mb-4">删除同义词记录</h2>
 

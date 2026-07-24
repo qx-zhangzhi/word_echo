@@ -1,6 +1,12 @@
 {% extends "base.html" %}
 
 {% block extra_css %}
+@media (min-width: 900px) {
+    .mobile-container {
+        max-width: 1120px;
+    }
+}
+
 .review-header {
     display: flex;
     align-items: flex-start;
@@ -100,6 +106,14 @@
     padding: 0 14px;
     font-size: 14px;
 }
+
+@media (min-width: 900px) {
+    .review-list-grid {
+        display: grid;
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+        gap: 12px;
+    }
+}
 {% endblock %}
 
 {% block content %}
@@ -123,6 +137,7 @@
 </div>
 
 {% if entries %}
+<div class="review-list-grid">
     {% for entry in entries %}
     <a href="{% url 'synonym_review' entry.pk %}" class="card review-card">
         <div class="review-top">
@@ -137,6 +152,7 @@
         <div class="review-meta">测试 {{ entry.review_attempts }} 次，答对 {{ entry.review_correct }} 次</div>
     </a>
     {% endfor %}
+</div>
 {% else %}
 <div class="card">
     <div class="card-title">还没有可复习的同义词</div>
