@@ -1,2 +1,5 @@
 *.pyc
+*/*.pyc
 python_venv/
+__pycache__/
+*.py[cod]

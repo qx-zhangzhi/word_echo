@@ -53,7 +53,7 @@ def generate_synonym_data(headword: str, known_words: str = "") -> dict[str, Any
     known_text = "\n".join(item.word for item in known_items) or "无"
 
     prompt = f"""你是 IELTS 7.5 写作词汇辨析老师。请围绕主题 {word!r} 整理一组高频替换词/词组，风格要像“钱类词汇辨析”：按来源、语境、正式程度区分，不能只给普通同义词。
-用户已知道这些词组，请保留它们并补充到总数 8 到 14 个：
+用户已知道这些词组，请保留它们并补充到总数 8 到 24 个：
 {known_text}
 
 只返回合法 JSON，不要输出 Markdown 或解释，格式如下：
@@ -147,7 +147,6 @@ items 必须包含用户已知道的词组；补充项要常用、可写进 IELT
             continue
         positions[lowered] = len(merged)
         merged.append(item)
-    merged = merged[:10]
     if not merged:
         raise SynonymAIError("AI 未生成有效同义词，请重试或手工填写。")
     return {
