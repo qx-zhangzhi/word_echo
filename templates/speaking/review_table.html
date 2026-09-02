@@ -1,0 +1,152 @@
+{% extends "speaking/mobile_base.html" %}
+
+{% block title %}口语复习表{% endblock %}
+
+{% block content %}
+<style>
+    .review-summary {
+        display: flex;
+        gap: 8px;
+        flex-wrap: wrap;
+        margin-top: 10px;
+    }
+
+    .index-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
+        gap: 8px;
+    }
+
+    .index-link {
+        display: block;
+        padding: 10px 12px;
+        border: 1px solid #dbeafe;
+        border-radius: 12px;
+        background: #eff6ff;
+        color: #1d4ed8;
+        font-size: 14px;
+        font-weight: 700;
+        line-height: 1.35;
+    }
+
+    .table-wrap {
+        overflow-x: auto;
+        border: 1px solid #e5e7eb;
+        border-radius: 14px;
+        background: #ffffff;
+    }
+
+    .review-table {
+        width: 100%;
+        min-width: 760px;
+        border-collapse: collapse;
+    }
+
+    .review-table th,
+    .review-table td {
+        padding: 12px;
+        border-bottom: 1px solid #eef0f4;
+        text-align: left;
+        vertical-align: top;
+        font-size: 14px;
+        line-height: 1.55;
+    }
+
+    .review-table th {
+        position: sticky;
+        top: 0;
+        z-index: 1;
+        background: #f9fafb;
+        color: #374151;
+        font-size: 13px;
+        font-weight: 800;
+    }
+
+    .review-table tr:last-child td {
+        border-bottom: none;
+    }
+
+    .col-no {
+        width: 54px;
+        color: #6b7280;
+        font-weight: 700;
+        white-space: nowrap;
+    }
+
+    .col-question {
+        width: 190px;
+        color: #111827;
+        font-weight: 700;
+    }
+
+    .col-answer {
+        width: 330px;
+        color: #111827;
+    }
+
+    .col-chunks {
+        width: 220px;
+        color: #374151;
+    }
+
+    .topic-heading {
+        scroll-margin-top: 90px;
+    }
+</style>
+
+<div class="top-bar">
+    <a class="back-link" href="{% url 'home' %}">← 返回首页</a>
+    <div class="top-title">口语复习表</div>
+    <div class="top-subtitle">只看题目、7分答案和表达块，专注背诵</div>
+    <div class="review-summary">
+        <span class="tag">Topic {{ topics|length }}</span>
+        <span class="tag gray">Question {{ total_questions }}</span>
+    </div>
+</div>
+
+{% if topics %}
+    <div class="section-title">Index</div>
+    <div class="card">
+        <div class="index-grid">
+            {% for topic in topics %}
+                <a class="index-link" href="#topic-{{ topic.id }}">
+                    {{ topic.get_part_display }} · {{ topic.title }}
+                </a>
+            {% endfor %}
+        </div>
+    </div>
+
+    {% for topic in topics %}
+        <div id="topic-{{ topic.id }}" class="section-title topic-heading">
+            {{ topic.get_part_display }} · {{ topic.title }}
+        </div>
+
+        <div class="table-wrap">
+            <table class="review-table">
+                <thead>
+                    <tr>
+                        <th class="col-no">No.</th>
+                        <th class="col-question">Question</th>
+                        <th class="col-answer">Band 7 Answer</th>
+                        <th class="col-chunks">Key Chunks</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for question in topic.questions.all %}
+                        {% if question.is_active %}
+                            <tr>
+                                <td class="col-no">Q{{ forloop.counter }}</td>
+                                <td class="col-question">{{ question.question_text|linebreaksbr }}</td>
+                                <td class="col-answer">{{ question.sample_answer|linebreaksbr }}</td>
+                                <td class="col-chunks">{{ question.useful_expressions|linebreaksbr }}</td>
+                            </tr>
+                        {% endif %}
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    {% endfor %}
+{% else %}
+    <div class="empty">还没有可复习的口语题，先导入答题库吧</div>
+{% endif %}
+{% endblock %}

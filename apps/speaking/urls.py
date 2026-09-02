@@ -13,6 +13,7 @@ def speaking_home(request):
 urlpatterns = [
     path("", speaking_home, name="speaking_home"),
 
+    path("review/", views.review_table, name="speaking_review_table"),
     path("topics/", views.topic_list, name="speaking_topic_list"),
     path("topics/create/", views.topic_create, name="speaking_topic_create"),
     path("topics/<int:topic_id>/", views.topic_detail, name="speaking_topic_detail"),

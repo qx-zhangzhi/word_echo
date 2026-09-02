@@ -24,6 +24,30 @@ def topic_list(request):
     )
 
 
+def review_table(request):
+    topics = (
+        SpeakingTopic.objects
+        .filter(is_active=True, questions__is_active=True)
+        .prefetch_related("questions")
+        .distinct()
+        .order_by("part", "sort_order", "id")
+    )
+
+    total_questions = SpeakingQuestion.objects.filter(
+        topic__in=topics,
+        is_active=True,
+    ).count()
+
+    return render(
+        request,
+        "speaking/review_table.html",
+        {
+            "topics": topics,
+            "total_questions": total_questions,
+        },
+    )
+
+
 def topic_create(request):
     if request.method == "POST":
         form = SpeakingTopicForm(request.POST)
