@@ -13,7 +13,7 @@
 
     .index-grid {
         display: grid;
-        grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
+        grid-template-columns: repeat(auto-fit, minmax(132px, 1fr));
         gap: 8px;
     }
 
@@ -30,15 +30,14 @@
     }
 
     .table-wrap {
-        overflow-x: auto;
         border: 1px solid #e5e7eb;
         border-radius: 14px;
         background: #ffffff;
+        overflow: hidden;
     }
 
     .review-table {
         width: 100%;
-        min-width: 760px;
         border-collapse: collapse;
     }
 
@@ -92,6 +91,91 @@
     .topic-heading {
         scroll-margin-top: 90px;
     }
+
+    .mobile-label {
+        display: none;
+    }
+
+    @media (max-width: 720px) {
+        .index-grid {
+            grid-template-columns: 1fr 1fr;
+        }
+
+        .index-link {
+            min-height: 44px;
+            padding: 9px 10px;
+            font-size: 13px;
+        }
+
+        .table-wrap {
+            border: none;
+            border-radius: 0;
+            background: transparent;
+            overflow: visible;
+        }
+
+        .review-table,
+        .review-table thead,
+        .review-table tbody,
+        .review-table tr,
+        .review-table th,
+        .review-table td {
+            display: block;
+            width: 100%;
+        }
+
+        .review-table thead {
+            display: none;
+        }
+
+        .review-table tr {
+            margin-bottom: 12px;
+            padding: 14px;
+            border: 1px solid #eef0f4;
+            border-radius: 16px;
+            background: #ffffff;
+            box-shadow: 0 4px 14px rgba(15, 23, 42, 0.06);
+        }
+
+        .review-table td {
+            padding: 0;
+            border-bottom: none;
+            font-size: 15px;
+            line-height: 1.65;
+        }
+
+        .review-table td + td {
+            margin-top: 12px;
+            padding-top: 12px;
+            border-top: 1px solid #eef0f4;
+        }
+
+        .col-no {
+            width: auto;
+            color: #2563eb;
+            font-size: 13px;
+        }
+
+        .col-question {
+            width: auto;
+            font-size: 17px;
+            line-height: 1.45;
+        }
+
+        .col-answer,
+        .col-chunks {
+            width: auto;
+        }
+
+        .mobile-label {
+            display: block;
+            margin-bottom: 4px;
+            color: #6b7280;
+            font-size: 12px;
+            font-weight: 800;
+            text-transform: uppercase;
+        }
+    }
 </style>
 
 <div class="top-bar">
@@ -136,9 +220,18 @@
                         {% if question.is_active %}
                             <tr>
                                 <td class="col-no">Q{{ forloop.counter }}</td>
-                                <td class="col-question">{{ question.question_text|linebreaksbr }}</td>
-                                <td class="col-answer">{{ question.sample_answer|linebreaksbr }}</td>
-                                <td class="col-chunks">{{ question.useful_expressions|linebreaksbr }}</td>
+                                <td class="col-question">
+                                    <span class="mobile-label">Question</span>
+                                    {{ question.question_text|linebreaksbr }}
+                                </td>
+                                <td class="col-answer">
+                                    <span class="mobile-label">Band 7 Answer</span>
+                                    {{ question.sample_answer|linebreaksbr }}
+                                </td>
+                                <td class="col-chunks">
+                                    <span class="mobile-label">Key Chunks</span>
+                                    {{ question.useful_expressions|linebreaksbr }}
+                                </td>
                             </tr>
                         {% endif %}
                     {% endfor %}
