@@ -27,7 +27,12 @@ def topic_list(request):
     )
 
 
-def review_table(request):
+def review_table(request, part=None):
+    if part is None:
+        return redirect("speaking_review_table_part", part="part1")
+    if part not in {"part1", "part2", "part3"}:
+        part = "part1"
+
     sort = request.GET.get("sort", "default")
     if sort not in {"default", "unmemorized", "recent"}:
         sort = "default"
@@ -40,7 +45,7 @@ def review_table(request):
 
     topics = (
         SpeakingTopic.objects
-        .filter(is_active=True, questions__is_active=True)
+        .filter(part=part, is_active=True, questions__is_active=True)
         .annotate(
             active_question_count=Count("questions", filter=Q(questions__is_active=True), distinct=True),
             memorized_question_count=Count(
@@ -67,7 +72,7 @@ def review_table(request):
         topics = topics.order_by("part", "sort_order", "id")
 
     topic_count = topics.count()
-    all_questions = SpeakingQuestion.objects.filter(topic__in=topics, is_active=True)
+    all_questions = SpeakingQuestion.objects.filter(topic__part=part, topic__in=topics, is_active=True)
     total_questions = all_questions.count()
     memorized_questions = all_questions.filter(memorized_at__isnull=False).count()
 
@@ -80,6 +85,8 @@ def review_table(request):
             "total_questions": total_questions,
             "memorized_questions": memorized_questions,
             "sort": sort,
+            "part": part,
+            "part_label": dict(SpeakingTopic.PART_CHOICES).get(part, "Part 1"),
         },
     )
 

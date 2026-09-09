@@ -143,6 +143,30 @@
         color: #ffffff;
     }
 
+    .part-row {
+        display: grid;
+        grid-template-columns: repeat(3, 1fr);
+        gap: 8px;
+        margin-top: 12px;
+    }
+
+    .part-link {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        min-height: 38px;
+        border-radius: 12px;
+        background: #eef2ff;
+        color: #3730a3;
+        font-size: 14px;
+        font-weight: 800;
+    }
+
+    .part-link.active {
+        background: #111827;
+        color: #ffffff;
+    }
+
     .memorized-time {
         margin-bottom: 8px;
         color: #047857;
@@ -257,17 +281,22 @@
 
 <div class="top-bar">
     <a class="back-link" href="{% url 'home' %}">← 返回首页</a>
-    <div class="top-title">口语复习表</div>
+    <div class="top-title">{{ part_label }} 复习表</div>
     <div class="top-subtitle">只看题目、7分答案和表达块，专注背诵</div>
+    <div class="part-row">
+        <a class="part-link {% if part == 'part1' %}active{% endif %}" href="{% url 'speaking_review_table_part' 'part1' %}">Part 1</a>
+        <a class="part-link {% if part == 'part2' %}active{% endif %}" href="{% url 'speaking_review_table_part' 'part2' %}">Part 2</a>
+        <a class="part-link {% if part == 'part3' %}active{% endif %}" href="{% url 'speaking_review_table_part' 'part3' %}">Part 3</a>
+    </div>
     <div class="review-summary">
         <span class="tag">Topic {{ topics|length }}</span>
         <span class="tag gray">Question {{ total_questions }}</span>
         <span class="tag green">已背 {{ memorized_questions }}</span>
     </div>
     <div class="sort-row">
-        <a class="sort-link {% if sort == 'default' %}active{% endif %}" href="{% url 'speaking_review_table' %}">题库顺序</a>
-        <a class="sort-link {% if sort == 'unmemorized' %}active{% endif %}" href="{% url 'speaking_review_table' %}?sort=unmemorized">未背优先</a>
-        <a class="sort-link {% if sort == 'recent' %}active{% endif %}" href="{% url 'speaking_review_table' %}?sort=recent">最近背过</a>
+        <a class="sort-link {% if sort == 'default' %}active{% endif %}" href="{% url 'speaking_review_table_part' part %}">题库顺序</a>
+        <a class="sort-link {% if sort == 'unmemorized' %}active{% endif %}" href="{% url 'speaking_review_table_part' part %}?sort=unmemorized">未背优先</a>
+        <a class="sort-link {% if sort == 'recent' %}active{% endif %}" href="{% url 'speaking_review_table_part' part %}?sort=recent">最近背过</a>
     </div>
 </div>
 
