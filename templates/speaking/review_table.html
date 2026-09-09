@@ -29,6 +29,14 @@
         line-height: 1.35;
     }
 
+    .index-progress {
+        display: block;
+        margin-top: 4px;
+        color: #6b7280;
+        font-size: 12px;
+        font-weight: 700;
+    }
+
     .table-wrap {
         border: 1px solid #e5e7eb;
         border-radius: 14px;
@@ -93,7 +101,18 @@
     }
 
     .topic-heading {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 8px;
         scroll-margin-top: 90px;
+    }
+
+    .topic-progress {
+        flex: 0 0 auto;
+        color: #047857;
+        font-size: 13px;
+        font-weight: 800;
     }
 
     .mobile-label {
@@ -259,6 +278,7 @@
             {% for topic in topics %}
                 <a class="index-link" href="#topic-{{ topic.id }}">
                     {{ topic.get_part_display }} · {{ topic.title }}
+                    <span class="index-progress">已背 {{ topic.memorized_question_count }}/{{ topic.active_question_count }}</span>
                 </a>
             {% endfor %}
         </div>
@@ -266,7 +286,8 @@
 
     {% for topic in topics %}
         <div id="topic-{{ topic.id }}" class="section-title topic-heading">
-            {{ topic.get_part_display }} · {{ topic.title }}
+            <span>{{ topic.get_part_display }} · {{ topic.title }}</span>
+            <span class="topic-progress">已背 {{ topic.memorized_question_count }}/{{ topic.active_question_count }}</span>
         </div>
 
         <div class="table-wrap">

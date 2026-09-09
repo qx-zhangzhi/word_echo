@@ -1,6 +1,6 @@
 # apps/speaking/views.py
 
-from django.db.models import F, Prefetch
+from django.db.models import Count, F, Max, Prefetch, Q
 from django.shortcuts import get_object_or_404, redirect, render
 from django.utils import timezone
 from django.utils.http import url_has_allowed_host_and_scheme
@@ -29,38 +29,54 @@ def topic_list(request):
 
 def review_table(request):
     sort = request.GET.get("sort", "default")
-    question_order = ["sort_order", "id"]
-    if sort == "unmemorized":
-        question_order = [F("memorized_at").asc(nulls_first=True), "sort_order", "id"]
-    elif sort == "recent":
-        question_order = [F("memorized_at").desc(nulls_last=True), "sort_order", "id"]
+    if sort not in {"default", "unmemorized", "recent"}:
+        sort = "default"
 
     active_questions = (
         SpeakingQuestion.objects
         .filter(is_active=True)
-        .order_by(*question_order)
+        .order_by("sort_order", "id")
     )
 
     topics = (
         SpeakingTopic.objects
         .filter(is_active=True, questions__is_active=True)
+        .annotate(
+            active_question_count=Count("questions", filter=Q(questions__is_active=True), distinct=True),
+            memorized_question_count=Count(
+                "questions",
+                filter=Q(questions__is_active=True, questions__memorized_at__isnull=False),
+                distinct=True,
+            ),
+            unmemorized_question_count=Count(
+                "questions",
+                filter=Q(questions__is_active=True, questions__memorized_at__isnull=True),
+                distinct=True,
+            ),
+            latest_memorized_at=Max("questions__memorized_at", filter=Q(questions__is_active=True)),
+        )
         .prefetch_related(Prefetch("questions", queryset=active_questions))
         .distinct()
-        .order_by("part", "sort_order", "id")
     )
 
-    questions = SpeakingQuestion.objects.filter(
-        topic__in=topics,
-        is_active=True,
-    )
-    total_questions = questions.count()
-    memorized_questions = questions.filter(memorized_at__isnull=False).count()
+    if sort == "unmemorized":
+        topics = topics.order_by("-unmemorized_question_count", "part", "sort_order", "id")
+    elif sort == "recent":
+        topics = topics.order_by(F("latest_memorized_at").desc(nulls_last=True), "part", "sort_order", "id")
+    else:
+        topics = topics.order_by("part", "sort_order", "id")
+
+    topic_count = topics.count()
+    all_questions = SpeakingQuestion.objects.filter(topic__in=topics, is_active=True)
+    total_questions = all_questions.count()
+    memorized_questions = all_questions.filter(memorized_at__isnull=False).count()
 
     return render(
         request,
         "speaking/review_table.html",
         {
             "topics": topics,
+            "topic_count": topic_count,
             "total_questions": total_questions,
             "memorized_questions": memorized_questions,
             "sort": sort,
