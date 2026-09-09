@@ -114,6 +114,11 @@ class Command(BaseCommand):
             default=DEFAULT_SOURCE,
             help=f"Markdown answer bank path. Default: {DEFAULT_SOURCE}",
         )
+        parser.add_argument(
+            "--reset-part1",
+            action="store_true",
+            help="Delete all existing Part 1 topics before importing the Markdown source.",
+        )
 
     def handle(self, *args, **options):
         source = Path(options["source"]).expanduser()
@@ -124,10 +129,15 @@ class Command(BaseCommand):
         if not entries:
             raise CommandError("No entries found. Expected headings like: ## 2026-09-02 | Part 1 | Headphones")
 
+        deleted_part1_topics = 0
+        if options["reset_part1"]:
+            deleted_part1_topics = SpeakingTopic.objects.filter(part="part1").count()
+            SpeakingTopic.objects.filter(part="part1").delete()
+
         topic_count = 0
         question_count = 0
 
-        for entry in entries:
+        for topic_index, entry in enumerate(entries, start=1):
             questions = parse_questions(entry["lines"])
             if not questions:
                 continue
@@ -137,6 +147,7 @@ class Command(BaseCommand):
                 part=entry["part"],
                 defaults={
                     "description": f"Imported from {source.name}. Last review entry: {entry['date']}.",
+                    "sort_order": topic_index,
                     "is_active": True,
                 },
             )
@@ -164,3 +175,7 @@ class Command(BaseCommand):
                 f"Imported {question_count} questions across {topic_count} topic entries from {source}"
             )
         )
+        if options["reset_part1"]:
+            self.stdout.write(
+                self.style.WARNING(f"Reset Part 1 before import: deleted {deleted_part1_topics} topics")
+            )

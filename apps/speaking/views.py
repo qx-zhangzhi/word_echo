@@ -1,6 +1,9 @@
 # apps/speaking/views.py
 
+from django.db.models import F, Prefetch
 from django.shortcuts import get_object_or_404, redirect, render
+from django.utils import timezone
+from django.utils.http import url_has_allowed_host_and_scheme
 from django.views.decorators.http import require_http_methods
 
 from .forms import SpeakingTopicForm, SpeakingQuestionForm
@@ -25,18 +28,33 @@ def topic_list(request):
 
 
 def review_table(request):
+    sort = request.GET.get("sort", "default")
+    question_order = ["sort_order", "id"]
+    if sort == "unmemorized":
+        question_order = [F("memorized_at").asc(nulls_first=True), "sort_order", "id"]
+    elif sort == "recent":
+        question_order = [F("memorized_at").desc(nulls_last=True), "sort_order", "id"]
+
+    active_questions = (
+        SpeakingQuestion.objects
+        .filter(is_active=True)
+        .order_by(*question_order)
+    )
+
     topics = (
         SpeakingTopic.objects
         .filter(is_active=True, questions__is_active=True)
-        .prefetch_related("questions")
+        .prefetch_related(Prefetch("questions", queryset=active_questions))
         .distinct()
         .order_by("part", "sort_order", "id")
     )
 
-    total_questions = SpeakingQuestion.objects.filter(
+    questions = SpeakingQuestion.objects.filter(
         topic__in=topics,
         is_active=True,
-    ).count()
+    )
+    total_questions = questions.count()
+    memorized_questions = questions.filter(memorized_at__isnull=False).count()
 
     return render(
         request,
@@ -44,8 +62,27 @@ def review_table(request):
         {
             "topics": topics,
             "total_questions": total_questions,
+            "memorized_questions": memorized_questions,
+            "sort": sort,
         },
     )
+
+
+@require_http_methods(["POST"])
+def mark_question_memorized(request, question_id):
+    question = get_object_or_404(
+        SpeakingQuestion,
+        id=question_id,
+        is_active=True,
+        topic__is_active=True,
+    )
+    question.memorized_at = timezone.now()
+    question.save(update_fields=["memorized_at", "updated_at"])
+
+    next_url = request.POST.get("next") or ""
+    if not url_has_allowed_host_and_scheme(next_url, allowed_hosts={request.get_host()}):
+        next_url = "speaking_review_table"
+    return redirect(next_url)
 
 
 def topic_create(request):

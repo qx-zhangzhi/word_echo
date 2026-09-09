@@ -88,12 +88,69 @@
         color: #374151;
     }
 
+    .col-status {
+        width: 150px;
+    }
+
     .topic-heading {
         scroll-margin-top: 90px;
     }
 
     .mobile-label {
         display: none;
+    }
+
+    .sort-row {
+        display: flex;
+        gap: 8px;
+        flex-wrap: wrap;
+        margin-top: 12px;
+    }
+
+    .sort-link {
+        display: inline-flex;
+        align-items: center;
+        min-height: 34px;
+        padding: 6px 10px;
+        border-radius: 999px;
+        background: #f3f4f6;
+        color: #4b5563;
+        font-size: 13px;
+        font-weight: 700;
+    }
+
+    .sort-link.active {
+        background: #2563eb;
+        color: #ffffff;
+    }
+
+    .memorized-time {
+        margin-bottom: 8px;
+        color: #047857;
+        font-size: 13px;
+        font-weight: 700;
+        line-height: 1.4;
+    }
+
+    .memorize-form {
+        margin: 0;
+    }
+
+    .btn-memorized,
+    .btn-unmemorized {
+        min-height: 38px;
+        border-radius: 10px;
+        font-size: 14px;
+    }
+
+    .btn-memorized {
+        background: #ecfdf5;
+        color: #047857;
+    }
+
+    .btn-unmemorized {
+        background: #2563eb;
+        color: #ffffff;
     }
 
     @media (max-width: 720px) {
@@ -163,7 +220,8 @@
         }
 
         .col-answer,
-        .col-chunks {
+        .col-chunks,
+        .col-status {
             width: auto;
         }
 
@@ -185,6 +243,12 @@
     <div class="review-summary">
         <span class="tag">Topic {{ topics|length }}</span>
         <span class="tag gray">Question {{ total_questions }}</span>
+        <span class="tag green">已背 {{ memorized_questions }}</span>
+    </div>
+    <div class="sort-row">
+        <a class="sort-link {% if sort == 'default' %}active{% endif %}" href="{% url 'speaking_review_table' %}">题库顺序</a>
+        <a class="sort-link {% if sort == 'unmemorized' %}active{% endif %}" href="{% url 'speaking_review_table' %}?sort=unmemorized">未背优先</a>
+        <a class="sort-link {% if sort == 'recent' %}active{% endif %}" href="{% url 'speaking_review_table' %}?sort=recent">最近背过</a>
     </div>
 </div>
 
@@ -213,27 +277,39 @@
                         <th class="col-question">Question</th>
                         <th class="col-answer">Band 7 Answer</th>
                         <th class="col-chunks">Key Chunks</th>
+                        <th class="col-status">Status</th>
                     </tr>
                 </thead>
                 <tbody>
                     {% for question in topic.questions.all %}
-                        {% if question.is_active %}
-                            <tr>
-                                <td class="col-no">Q{{ forloop.counter }}</td>
-                                <td class="col-question">
-                                    <span class="mobile-label">Question</span>
-                                    {{ question.question_text|linebreaksbr }}
-                                </td>
-                                <td class="col-answer">
-                                    <span class="mobile-label">Band 7 Answer</span>
-                                    {{ question.sample_answer|linebreaksbr }}
-                                </td>
-                                <td class="col-chunks">
-                                    <span class="mobile-label">Key Chunks</span>
-                                    {{ question.useful_expressions|linebreaksbr }}
-                                </td>
-                            </tr>
-                        {% endif %}
+                        <tr id="question-{{ question.id }}">
+                            <td class="col-no">Q{{ forloop.counter }}</td>
+                            <td class="col-question">
+                                <span class="mobile-label">Question</span>
+                                {{ question.question_text|linebreaksbr }}
+                            </td>
+                            <td class="col-answer">
+                                <span class="mobile-label">Band 7 Answer</span>
+                                {{ question.sample_answer|linebreaksbr }}
+                            </td>
+                            <td class="col-chunks">
+                                <span class="mobile-label">Key Chunks</span>
+                                {{ question.useful_expressions|linebreaksbr }}
+                            </td>
+                            <td class="col-status">
+                                <span class="mobile-label">Status</span>
+                                {% if question.memorized_at %}
+                                    <div class="memorized-time">已背 {{ question.memorized_at|date:"m-d H:i" }}</div>
+                                {% endif %}
+                                <form class="memorize-form" method="post" action="{% url 'speaking_question_memorized' question.id %}">
+                                    {% csrf_token %}
+                                    <input type="hidden" name="next" value="{{ request.get_full_path }}#question-{{ question.id }}">
+                                    <button class="btn {% if question.memorized_at %}btn-memorized{% else %}btn-unmemorized{% endif %}" type="submit">
+                                        {% if question.memorized_at %}重新标记{% else %}标记已背过{% endif %}
+                                    </button>
+                                </form>
+                            </td>
+                        </tr>
                     {% endfor %}
                 </tbody>
             </table>

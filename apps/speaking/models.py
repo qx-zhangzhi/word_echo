@@ -57,6 +57,7 @@ class SpeakingQuestion(models.Model):
 
     sort_order = models.IntegerField(default=0, verbose_name="排序")
     is_active = models.BooleanField(default=True, verbose_name="是否启用")
+    memorized_at = models.DateTimeField(blank=True, null=True, verbose_name="背过时间")
 
     created_at = models.DateTimeField(default=timezone.now, verbose_name="创建时间")
     updated_at = models.DateTimeField(auto_now=True, verbose_name="更新时间")

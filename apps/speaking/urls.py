@@ -14,6 +14,7 @@ urlpatterns = [
     path("", speaking_home, name="speaking_home"),
 
     path("review/", views.review_table, name="speaking_review_table"),
+    path("questions/<int:question_id>/memorized/", views.mark_question_memorized, name="speaking_question_memorized"),
     path("topics/", views.topic_list, name="speaking_topic_list"),
     path("topics/create/", views.topic_create, name="speaking_topic_create"),
     path("topics/<int:topic_id>/", views.topic_detail, name="speaking_topic_detail"),

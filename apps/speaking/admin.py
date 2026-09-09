@@ -7,7 +7,7 @@ from .models import SpeakingTopic, SpeakingQuestion, SpeakingAnswer
 class SpeakingQuestionInline(admin.TabularInline):
     model = SpeakingQuestion
     extra = 1
-    fields = ("question_text", "sort_order", "is_active")
+    fields = ("question_text", "sort_order", "is_active", "memorized_at")
 
 
 @admin.register(SpeakingTopic)
@@ -21,8 +21,8 @@ class SpeakingTopicAdmin(admin.ModelAdmin):
 
 @admin.register(SpeakingQuestion)
 class SpeakingQuestionAdmin(admin.ModelAdmin):
-    list_display = ("id", "topic", "short_question", "sort_order", "is_active", "created_at")
-    list_filter = ("topic__part", "topic", "is_active")
+    list_display = ("id", "topic", "short_question", "sort_order", "is_active", "memorized_at", "created_at")
+    list_filter = ("topic__part", "topic", "is_active", "memorized_at")
     search_fields = ("question_text", "sample_answer", "key_points", "useful_expressions")
     ordering = ("topic", "sort_order", "id")
 
