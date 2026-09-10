@@ -1,4 +1,7 @@
+import json
+
 from django.contrib.auth.decorators import login_required
+from django.core.exceptions import ValidationError
 from django.db.models import Count, Q
 from django.shortcuts import get_object_or_404, redirect, render
 from django.urls import reverse
@@ -6,7 +9,7 @@ from django.utils import timezone
 from django.utils.http import url_has_allowed_host_and_scheme
 from django.views.decorators.http import require_POST
 
-from .forms import CambridgeVocabEntryForm
+from .forms import CambridgeVocabEntryForm, CambridgeVocabImportForm
 from .models import CambridgeVocabEntry
 
 
@@ -117,6 +120,106 @@ def entry_create(request):
         form = CambridgeVocabEntryForm()
 
     return render(request, "cambridge_vocab/entry_form.html", {"form": form, "mode": "create"})
+
+
+def _clean_entry_payload(item):
+    allowed = {
+        "skill",
+        "entry_type",
+        "word",
+        "meaning_cn",
+        "synonym_replacements",
+        "original_expression",
+        "example_sentence",
+        "book",
+        "test",
+        "section_or_passage",
+        "question_numbers",
+        "source_title",
+        "source_detail",
+        "note",
+    }
+    payload = {key: str(value).strip() for key, value in item.items() if key in allowed and value is not None}
+    if payload.get("skill") not in {"listening", "reading"}:
+        raise ValidationError("skill 只能是 listening 或 reading")
+    if payload.get("entry_type") not in {"unknown", "answer", "synonym"}:
+        payload["entry_type"] = "unknown"
+    if not payload.get("word"):
+        raise ValidationError("word 不能为空")
+    return payload
+
+
+def _parse_import_payload(raw_text):
+    try:
+        data = json.loads(raw_text)
+    except json.JSONDecodeError as exc:
+        raise ValidationError(f"JSON 格式不对：第 {exc.lineno} 行附近有问题") from exc
+
+    if isinstance(data, dict):
+        data = data.get("entries", [])
+    if not isinstance(data, list):
+        raise ValidationError("请粘贴 JSON 数组，或者包含 entries 数组的 JSON 对象")
+
+    entries = []
+    errors = []
+    for index, item in enumerate(data, start=1):
+        if not isinstance(item, dict):
+            errors.append(f"第 {index} 条不是对象")
+            continue
+        try:
+            entries.append(_clean_entry_payload(item))
+        except ValidationError as exc:
+            errors.append(f"第 {index} 条：{exc.messages[0]}")
+
+    if errors:
+        raise ValidationError(errors)
+    if not entries:
+        raise ValidationError("没有找到可导入的词条")
+    return entries
+
+
+def _import_entries(user, entries):
+    result = {"created": 0, "updated": 0}
+    for payload in entries:
+        lookup = {
+            "user": user,
+            "skill": payload["skill"],
+            "book": payload.get("book", ""),
+            "test": payload.get("test", ""),
+            "section_or_passage": payload.get("section_or_passage", ""),
+            "question_numbers": payload.get("question_numbers", ""),
+            "word": payload["word"],
+        }
+        defaults = {key: value for key, value in payload.items() if key not in lookup}
+        _, created = CambridgeVocabEntry.objects.update_or_create(
+            **lookup,
+            defaults=defaults,
+        )
+        if created:
+            result["created"] += 1
+        else:
+            result["updated"] += 1
+    return result
+
+
+@login_required
+def entry_import(request):
+    result = None
+    if request.method == "POST":
+        form = CambridgeVocabImportForm(request.POST)
+        if form.is_valid():
+            try:
+                entries = _parse_import_payload(form.cleaned_data["raw_text"])
+                result = _import_entries(request.user, entries)
+            except ValidationError as exc:
+                form.add_error("raw_text", exc)
+    else:
+        form = CambridgeVocabImportForm()
+
+    return render(request, "cambridge_vocab/entry_import.html", {
+        "form": form,
+        "result": result,
+    })
 
 
 @login_required

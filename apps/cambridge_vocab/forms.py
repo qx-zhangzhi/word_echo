@@ -3,6 +3,33 @@ from django import forms
 from .models import CambridgeVocabEntry
 
 
+class CambridgeVocabImportForm(forms.Form):
+    raw_text = forms.CharField(
+        label="ChatGPT 总结结果",
+        widget=forms.Textarea(attrs={
+            "class": "textarea",
+            "rows": 16,
+            "placeholder": """请粘贴 JSON 数组，例如：
+[
+  {
+    "skill": "listening",
+    "entry_type": "synonym",
+    "word": "reserve",
+    "meaning_cn": "预订；保留",
+    "synonym_replacements": "book = reserve\nkeep = reserve",
+    "book": "Cambridge 19",
+    "test": "Test 1",
+    "section_or_passage": "Listening Section 2",
+    "question_numbers": "14",
+    "source_title": "Hotel booking",
+    "source_detail": "题干用 book，录音中说 reserve。",
+    "note": "答案词，注意和 preserve 区分"
+  }
+]""",
+        }),
+    )
+
+
 class CambridgeVocabEntryForm(forms.ModelForm):
     class Meta:
         model = CambridgeVocabEntry

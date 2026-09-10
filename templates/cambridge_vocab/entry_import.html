@@ -1,0 +1,88 @@
+{% extends "base.html" %}
+
+{% block title %}导入剑雅词条{% endblock %}
+
+{% block extra_css %}
+@media (min-width: 900px) {
+    .mobile-container {
+        max-width: 980px;
+    }
+}
+
+.import-title {
+    margin: 0;
+    font-size: 26px;
+    line-height: 1.2;
+    font-weight: 900;
+}
+
+.prompt-box {
+    margin-bottom: 14px;
+    border: 1px solid #dbeafe;
+    border-radius: 14px;
+    background: #eff6ff;
+    padding: 14px;
+    color: #1e3a8a;
+    font-size: 14px;
+    line-height: 1.7;
+    white-space: pre-wrap;
+}
+
+.success-box {
+    margin-bottom: 14px;
+    border: 1px solid #bbf7d0;
+    border-radius: 14px;
+    background: #ecfdf5;
+    padding: 14px;
+    color: #047857;
+    font-size: 14px;
+    font-weight: 800;
+    line-height: 1.6;
+}
+
+.action-row {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 10px;
+    margin-top: 14px;
+}
+{% endblock %}
+
+{% block content %}
+<a class="back-link" href="{% url 'cambridge_vocab_list' %}">← 返回词库</a>
+
+<div class="hero" style="padding-left: 0; padding-right: 0;">
+    <h1 class="import-title">导入剑雅词条</h1>
+    <div class="top-subtitle">把 ChatGPT 总结好的 JSON 粘进来，一次生成多条记录。</div>
+</div>
+
+<div class="prompt-box">给 ChatGPT 的提示词：
+
+请根据这套剑雅听力/阅读题，总结我需要复习的词汇和同义替换，输出严格 JSON 数组，不要加 Markdown。每条包含：
+skill: listening 或 reading
+entry_type: unknown / answer / synonym
+word, meaning_cn, synonym_replacements, original_expression, example_sentence, book, test, section_or_passage, question_numbers, source_title, source_detail, note
+
+要求：每个重要答案词、生词或同义替换单独一条；source_detail 说明它来自哪道题、原文和题干怎么替换。</div>
+
+{% if result %}
+<div class="success-box">
+    导入完成：新增 {{ result.created }} 条，更新 {{ result.updated }} 条。
+</div>
+{% endif %}
+
+<form class="card" method="post">
+    {% csrf_token %}
+    <div class="form-field">
+        <label class="form-label" for="{{ form.raw_text.id_for_label }}">{{ form.raw_text.label }}</label>
+        {{ form.raw_text }}
+        {% for error in form.raw_text.errors %}
+        <div class="form-error">{{ error }}</div>
+        {% endfor %}
+    </div>
+    <div class="action-row">
+        <button class="btn btn-primary" type="submit">导入</button>
+        <a class="btn btn-secondary" href="{% url 'cambridge_vocab_list' %}">完成</a>
+    </div>
+</form>
+{% endblock %}

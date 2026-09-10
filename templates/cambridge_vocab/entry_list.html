@@ -44,6 +44,12 @@
     font-size: 14px;
 }
 
+.header-actions {
+    display: flex;
+    gap: 8px;
+    flex: 0 0 auto;
+}
+
 .stats-grid {
     display: grid;
     grid-template-columns: repeat(2, minmax(0, 1fr));
@@ -188,7 +194,10 @@
             <h1 class="vocab-title">剑雅词库</h1>
             <div class="vocab-subtitle">按真题来源记录生词、答案词和同义替换。</div>
         </div>
-        <a href="{% url 'cambridge_vocab_create' %}" class="btn btn-primary small-btn">新增</a>
+        <div class="header-actions">
+            <a href="{% url 'cambridge_vocab_import' %}" class="btn btn-secondary small-btn">导入</a>
+            <a href="{% url 'cambridge_vocab_create' %}" class="btn btn-primary small-btn">新增</a>
+        </div>
     </div>
 
     <div class="stats-grid">
