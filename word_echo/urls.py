@@ -31,6 +31,7 @@ urlpatterns = [
     path("phrases/", include("apps.phrases.urls")),
     path("speaking/", include("apps.speaking.urls")),
     path("primary-dictation/", include("apps.primary_dictation.urls")),
+    path("cambridge-vocab/", include("apps.cambridge_vocab.urls")),
 
 ]
 

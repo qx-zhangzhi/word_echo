@@ -1,0 +1,148 @@
+{% extends "base.html" %}
+
+{% block title %}{{ entry.word }}{% endblock %}
+
+{% block extra_css %}
+@media (min-width: 900px) {
+    .mobile-container {
+        max-width: 900px;
+    }
+}
+
+.detail-header {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: 12px;
+    margin-bottom: 14px;
+}
+
+.detail-title {
+    margin: 0;
+    font-size: 30px;
+    line-height: 1.2;
+    font-weight: 900;
+}
+
+.badge-row {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    margin-top: 12px;
+}
+
+.badge {
+    border-radius: 999px;
+    padding: 6px 10px;
+    background: #f1f5f9;
+    color: #334155;
+    font-size: 12px;
+    font-weight: 900;
+}
+
+.badge-blue {
+    background: #eff6ff;
+    color: #1d4ed8;
+}
+
+.badge-green {
+    background: #ecfdf5;
+    color: #047857;
+}
+
+.badge-orange {
+    background: #fff7ed;
+    color: #c2410c;
+}
+
+.section-label {
+    margin-top: 18px;
+    color: #374151;
+    font-size: 14px;
+    font-weight: 900;
+}
+
+.section-text {
+    margin-top: 8px;
+    color: #1f2937;
+    font-size: 16px;
+    line-height: 1.75;
+    white-space: pre-wrap;
+}
+
+.action-grid {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: 10px;
+    margin-top: 16px;
+}
+
+@media (min-width: 620px) {
+    .action-grid {
+        grid-template-columns: repeat(3, minmax(0, 1fr));
+    }
+}
+{% endblock %}
+
+{% block content %}
+<a class="back-link" href="{% url 'cambridge_vocab_list' %}">← 返回词库</a>
+
+<div class="card">
+    <div class="detail-header">
+        <div>
+            <h1 class="detail-title">{{ entry.word }}</h1>
+            <div class="card-desc">{{ entry.meaning_cn|default:"未填写中文意思" }}</div>
+        </div>
+        <span class="badge {% if entry.is_learned %}badge-green{% else %}badge-orange{% endif %}">
+            {% if entry.is_learned %}已背{% else %}未背{% endif %}
+        </span>
+    </div>
+
+    <div class="badge-row">
+        <span class="badge badge-blue">{{ entry.get_skill_display }}</span>
+        <span class="badge">{{ entry.get_entry_type_display }}</span>
+        <span class="badge">{{ entry.source_label }}</span>
+        {% if entry.learned_at %}
+        <span class="badge badge-green">背过：{{ entry.learned_at|date:"Y-m-d H:i" }}</span>
+        {% endif %}
+    </div>
+
+    {% if entry.synonym_replacements %}
+    <div class="section-label">同义替换</div>
+    <div class="section-text">{{ entry.synonym_replacements }}</div>
+    {% endif %}
+
+    {% if entry.original_expression %}
+    <div class="section-label">原文/题干表达</div>
+    <div class="section-text">{{ entry.original_expression }}</div>
+    {% endif %}
+
+    {% if entry.example_sentence %}
+    <div class="section-label">例句/原句</div>
+    <div class="section-text">{{ entry.example_sentence }}</div>
+    {% endif %}
+
+    {% if entry.source_title or entry.source_detail %}
+    <div class="section-label">题目来源</div>
+    <div class="section-text">{% if entry.source_title %}{{ entry.source_title }}
+{% endif %}{{ entry.source_detail }}</div>
+    {% endif %}
+
+    {% if entry.note %}
+    <div class="section-label">备注</div>
+    <div class="section-text">{{ entry.note }}</div>
+    {% endif %}
+
+    <div class="action-grid">
+        <form method="post" action="{% url 'cambridge_vocab_toggle_learned' entry.pk %}">
+            {% csrf_token %}
+            <input type="hidden" name="next" value="{{ request.get_full_path }}">
+            <button class="btn {% if entry.is_learned %}btn-secondary{% else %}btn-primary{% endif %}" type="submit">
+                {% if entry.is_learned %}标记为未背{% else %}标记已背{% endif %}
+            </button>
+        </form>
+        <a class="btn btn-secondary" href="{% url 'cambridge_vocab_update' entry.pk %}">编辑</a>
+        <a class="btn btn-secondary" href="{% url 'cambridge_vocab_delete' entry.pk %}">删除</a>
+    </div>
+</div>
+{% endblock %}

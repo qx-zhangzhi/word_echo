@@ -1,0 +1,17 @@
+{% extends "base.html" %}
+
+{% block title %}删除词条{% endblock %}
+
+{% block content %}
+<a class="back-link" href="{% url 'cambridge_vocab_detail' entry.pk %}">← 返回</a>
+
+<div class="card">
+    <div class="card-title">删除「{{ entry.word }}」？</div>
+    <div class="card-desc">这条记录的来源、同义替换和背诵状态都会一起删除。</div>
+    <form method="post" style="margin-top: 16px;">
+        {% csrf_token %}
+        <button class="btn btn-primary" type="submit">确认删除</button>
+        <a class="btn btn-secondary" href="{% url 'cambridge_vocab_detail' entry.pk %}" style="margin-top: 10px;">取消</a>
+    </form>
+</div>
+{% endblock %}

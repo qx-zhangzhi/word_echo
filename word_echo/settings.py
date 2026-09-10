@@ -48,6 +48,7 @@ INSTALLED_APPS = [
     "apps.phrases",
     "apps.speaking",
     "apps.primary_dictation",
+    "apps.cambridge_vocab",
     ###"apps.primary_dictation.apps.PrimaryDictationConfig",
 ]
 

@@ -1,0 +1,82 @@
+{% extends "base.html" %}
+
+{% block title %}{% if mode == "create" %}新增剑雅词条{% else %}编辑剑雅词条{% endif %}{% endblock %}
+
+{% block extra_css %}
+@media (min-width: 900px) {
+    .mobile-container {
+        max-width: 980px;
+    }
+}
+
+.form-header {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: 12px;
+    margin-bottom: 14px;
+}
+
+.form-title {
+    margin: 0;
+    font-size: 26px;
+    line-height: 1.2;
+    font-weight: 900;
+}
+
+.field-grid {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: 0 14px;
+}
+
+.full-field {
+    grid-column: 1 / -1;
+}
+
+.action-row {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 10px;
+    margin-top: 14px;
+}
+
+@media (min-width: 760px) {
+    .field-grid {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+}
+{% endblock %}
+
+{% block content %}
+<a class="back-link" href="{% url 'cambridge_vocab_list' %}">← 返回词库</a>
+
+<div class="form-header">
+    <div>
+        <h1 class="form-title">{% if mode == "create" %}新增剑雅词条{% else %}编辑剑雅词条{% endif %}</h1>
+        <div class="top-subtitle">记录它来自哪本剑雅、哪套题、哪一题。</div>
+    </div>
+</div>
+
+<form class="card" method="post">
+    {% csrf_token %}
+    <div class="field-grid">
+        {% for field in form %}
+        <div class="form-field {% if field.name in 'synonym_replacements example_sentence source_detail note' %}full-field{% endif %}">
+            <label class="form-label" for="{{ field.id_for_label }}">{{ field.label }}</label>
+            {{ field }}
+            {% if field.help_text %}
+            <div class="form-help">{{ field.help_text }}</div>
+            {% endif %}
+            {% for error in field.errors %}
+            <div class="form-error">{{ error }}</div>
+            {% endfor %}
+        </div>
+        {% endfor %}
+    </div>
+    <div class="action-row">
+        <button class="btn btn-primary" type="submit">保存</button>
+        <a class="btn btn-secondary" href="{% if entry %}{% url 'cambridge_vocab_detail' entry.pk %}{% else %}{% url 'cambridge_vocab_list' %}{% endif %}">取消</a>
+    </div>
+</form>
+{% endblock %}
