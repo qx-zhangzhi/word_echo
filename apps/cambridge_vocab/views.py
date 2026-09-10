@@ -9,7 +9,14 @@ from django.utils import timezone
 from django.utils.http import url_has_allowed_host_and_scheme
 from django.views.decorators.http import require_POST
 
-from .forms import CambridgeVocabEntryForm, CambridgeVocabImportForm
+from .forms import (
+    BOOK_CHOICES,
+    SECTION_CHOICES,
+    TEST_CHOICES,
+    CambridgeVocabEntryForm,
+    CambridgeVocabImportForm,
+    skill_from_section,
+)
 from .models import CambridgeVocabEntry
 
 
@@ -31,6 +38,9 @@ def _filtered_entries(request):
     entry_type = request.GET.get("entry_type", "")
     status = request.GET.get("status", "")
     query = request.GET.get("q", "").strip()
+    book = request.GET.get("book", "")
+    test = request.GET.get("test", "")
+    section_or_passage = request.GET.get("section_or_passage", "")
 
     if skill in {"listening", "reading"}:
         entries = entries.filter(skill=skill)
@@ -62,11 +72,33 @@ def _filtered_entries(request):
             | Q(source_detail__icontains=query)
         )
 
+    valid_books = {value for value, _ in BOOK_CHOICES if value}
+    valid_tests = {value for value, _ in TEST_CHOICES if value}
+    valid_sections = {value for value, _ in SECTION_CHOICES if value}
+
+    if book in valid_books:
+        entries = entries.filter(book=book)
+    else:
+        book = ""
+
+    if test in valid_tests:
+        entries = entries.filter(test=test)
+    else:
+        test = ""
+
+    if section_or_passage in valid_sections:
+        entries = entries.filter(section_or_passage=section_or_passage)
+    else:
+        section_or_passage = ""
+
     return entries, {
         "skill": skill,
         "entry_type": entry_type,
         "status": status,
         "q": query,
+        "book": book,
+        "test": test,
+        "section_or_passage": section_or_passage,
     }
 
 
@@ -98,6 +130,9 @@ def entry_list(request):
         "stats": stats,
         "skill_choices": CambridgeVocabEntry.SKILL_CHOICES,
         "entry_type_choices": CambridgeVocabEntry.ENTRY_TYPE_CHOICES,
+        "book_choices": BOOK_CHOICES,
+        "test_choices": TEST_CHOICES,
+        "section_choices": SECTION_CHOICES,
     })
 
 
@@ -122,7 +157,8 @@ def entry_create(request):
     return render(request, "cambridge_vocab/entry_form.html", {"form": form, "mode": "create"})
 
 
-def _clean_entry_payload(item):
+def _clean_entry_payload(item, source_defaults=None):
+    source_defaults = source_defaults or {}
     allowed = {
         "skill",
         "entry_type",
@@ -140,6 +176,7 @@ def _clean_entry_payload(item):
         "note",
     }
     payload = {key: str(value).strip() for key, value in item.items() if key in allowed and value is not None}
+    payload.update(source_defaults)
     if payload.get("skill") not in {"listening", "reading"}:
         raise ValidationError("skill 只能是 listening 或 reading")
     if payload.get("entry_type") not in {"unknown", "answer", "synonym"}:
@@ -149,7 +186,7 @@ def _clean_entry_payload(item):
     return payload
 
 
-def _parse_import_payload(raw_text):
+def _parse_import_payload(raw_text, source_defaults=None):
     try:
         data = json.loads(raw_text)
     except json.JSONDecodeError as exc:
@@ -167,7 +204,7 @@ def _parse_import_payload(raw_text):
             errors.append(f"第 {index} 条不是对象")
             continue
         try:
-            entries.append(_clean_entry_payload(item))
+            entries.append(_clean_entry_payload(item, source_defaults))
         except ValidationError as exc:
             errors.append(f"第 {index} 条：{exc.messages[0]}")
 
@@ -209,7 +246,14 @@ def entry_import(request):
         form = CambridgeVocabImportForm(request.POST)
         if form.is_valid():
             try:
-                entries = _parse_import_payload(form.cleaned_data["raw_text"])
+                section_or_passage = form.cleaned_data["section_or_passage"]
+                source_defaults = {
+                    "book": form.cleaned_data["book"],
+                    "test": form.cleaned_data["test"],
+                    "section_or_passage": section_or_passage,
+                    "skill": skill_from_section(section_or_passage),
+                }
+                entries = _parse_import_payload(form.cleaned_data["raw_text"], source_defaults)
                 result = _import_entries(request.user, entries)
             except ValidationError as exc:
                 form.add_error("raw_text", exc)

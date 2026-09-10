@@ -46,6 +46,18 @@
     gap: 10px;
     margin-top: 14px;
 }
+
+.source-grid {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: 10px;
+}
+
+@media (min-width: 680px) {
+    .source-grid {
+        grid-template-columns: repeat(3, minmax(0, 1fr));
+    }
+}
 {% endblock %}
 
 {% block content %}
@@ -59,9 +71,8 @@
 <div class="prompt-box">给 ChatGPT 的提示词：
 
 请根据这套剑雅听力/阅读题，总结我需要复习的词汇和同义替换，输出严格 JSON 数组，不要加 Markdown。每条包含：
-skill: listening 或 reading
 entry_type: unknown / answer / synonym
-word, meaning_cn, synonym_replacements, original_expression, example_sentence, book, test, section_or_passage, question_numbers, source_title, source_detail, note
+word, meaning_cn, synonym_replacements, original_expression, example_sentence, question_numbers, source_title, source_detail, note
 
 要求：每个重要答案词、生词或同义替换单独一条；source_detail 说明它来自哪道题、原文和题干怎么替换。</div>
 
@@ -73,6 +84,29 @@ word, meaning_cn, synonym_replacements, original_expression, example_sentence, b
 
 <form class="card" method="post">
     {% csrf_token %}
+    <div class="source-grid">
+        <div class="form-field">
+            <label class="form-label" for="{{ form.book.id_for_label }}">{{ form.book.label }}</label>
+            {{ form.book }}
+            {% for error in form.book.errors %}
+            <div class="form-error">{{ error }}</div>
+            {% endfor %}
+        </div>
+        <div class="form-field">
+            <label class="form-label" for="{{ form.test.id_for_label }}">{{ form.test.label }}</label>
+            {{ form.test }}
+            {% for error in form.test.errors %}
+            <div class="form-error">{{ error }}</div>
+            {% endfor %}
+        </div>
+        <div class="form-field">
+            <label class="form-label" for="{{ form.section_or_passage.id_for_label }}">{{ form.section_or_passage.label }}</label>
+            {{ form.section_or_passage }}
+            {% for error in form.section_or_passage.errors %}
+            <div class="form-error">{{ error }}</div>
+            {% endfor %}
+        </div>
+    </div>
     <div class="form-field">
         <label class="form-label" for="{{ form.raw_text.id_for_label }}">{{ form.raw_text.label }}</label>
         {{ form.raw_text }}

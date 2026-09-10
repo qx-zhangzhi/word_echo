@@ -23,7 +23,7 @@
 
 .vocab-title {
     margin: 0;
-    font-size: 28px;
+    font-size: 26px;
     line-height: 1.2;
     font-weight: 900;
 }
@@ -53,7 +53,7 @@
 .stats-grid {
     display: grid;
     grid-template-columns: repeat(2, minmax(0, 1fr));
-    gap: 10px;
+    gap: 8px;
     margin-bottom: 12px;
 }
 
@@ -61,11 +61,11 @@
     border: 1px solid #e5eaf1;
     border-radius: 14px;
     background: #fff;
-    padding: 12px;
+    padding: 10px;
 }
 
 .stat-number {
-    font-size: 22px;
+    font-size: 20px;
     font-weight: 900;
     line-height: 1.1;
 }
@@ -80,7 +80,7 @@
 .filter-panel {
     display: grid;
     grid-template-columns: 1fr;
-    gap: 10px;
+    gap: 8px;
     margin-bottom: 12px;
 }
 
@@ -93,11 +93,13 @@
 .entry-grid {
     display: grid;
     grid-template-columns: 1fr;
-    gap: 12px;
+    gap: 8px;
 }
 
 .entry-card {
     display: block;
+    padding: 12px;
+    margin-bottom: 0;
 }
 
 .entry-top {
@@ -108,7 +110,7 @@
 }
 
 .entry-word {
-    font-size: 22px;
+    font-size: 18px;
     line-height: 1.25;
     font-weight: 900;
 }
@@ -116,13 +118,13 @@
 .badge-row {
     display: flex;
     flex-wrap: wrap;
-    gap: 8px;
-    margin-top: 12px;
+    gap: 6px;
+    margin-top: 8px;
 }
 
 .badge {
     border-radius: 999px;
-    padding: 6px 10px;
+    padding: 4px 8px;
     background: #f1f5f9;
     color: #334155;
     font-size: 12px;
@@ -145,7 +147,7 @@
 }
 
 .source-line {
-    margin-top: 10px;
+    margin-top: 8px;
     color: #475569;
     font-size: 13px;
     line-height: 1.5;
@@ -153,15 +155,21 @@
 }
 
 .synonym-preview {
-    margin-top: 10px;
+    margin-top: 6px;
     color: #1f2937;
-    font-size: 14px;
-    line-height: 1.55;
+    font-size: 13px;
+    line-height: 1.45;
     white-space: pre-wrap;
 }
 
 .mark-form {
-    margin-top: 12px;
+    margin-top: 8px;
+}
+
+.mark-form .btn {
+    min-height: 38px;
+    border-radius: 10px;
+    font-size: 14px;
 }
 
 .empty-card {
@@ -181,7 +189,7 @@
 
 @media (min-width: 900px) {
     .entry-grid {
-        grid-template-columns: repeat(2, minmax(0, 1fr));
+        grid-template-columns: repeat(3, minmax(0, 1fr));
     }
 }
 {% endblock %}
@@ -230,6 +238,30 @@
                 <option value="">全部</option>
                 {% for value, label in skill_choices %}
                 <option value="{{ value }}" {% if filters.skill == value %}selected{% endif %}>{{ label }}</option>
+                {% endfor %}
+            </select>
+        </div>
+        <div class="form-field" style="margin-bottom: 0;">
+            <label class="form-label" for="book">剑雅册数</label>
+            <select class="input" id="book" name="book">
+                {% for value, label in book_choices %}
+                <option value="{{ value }}" {% if filters.book == value %}selected{% endif %}>{% if value %}{{ label }}{% else %}全部{% endif %}</option>
+                {% endfor %}
+            </select>
+        </div>
+        <div class="form-field" style="margin-bottom: 0;">
+            <label class="form-label" for="test">Test</label>
+            <select class="input" id="test" name="test">
+                {% for value, label in test_choices %}
+                <option value="{{ value }}" {% if filters.test == value %}selected{% endif %}>{% if value %}{{ label }}{% else %}全部{% endif %}</option>
+                {% endfor %}
+            </select>
+        </div>
+        <div class="form-field" style="margin-bottom: 0;">
+            <label class="form-label" for="section_or_passage">Part / Passage</label>
+            <select class="input" id="section_or_passage" name="section_or_passage">
+                {% for value, label in section_choices %}
+                <option value="{{ value }}" {% if filters.section_or_passage == value %}selected{% endif %}>{% if value %}{{ label }}{% else %}全部{% endif %}</option>
                 {% endfor %}
             </select>
         </div>
