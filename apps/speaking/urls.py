@@ -1,7 +1,7 @@
 # apps/speaking/urls.py
 
 from django.shortcuts import redirect
-from django.urls import path
+from django.urls import path, re_path
 
 from . import views
 
@@ -13,6 +13,7 @@ def speaking_home(request):
 urlpatterns = [
     path("", speaking_home, name="speaking_home"),
 
+    re_path(r"^review/(?P<part>part[123])/#(?P<anchor>[-\w]+)$", views.review_fragment_redirect, name="speaking_review_fragment_redirect"),
     path("review/", views.review_table, name="speaking_review_table"),
     path("review/<str:part>/", views.review_table, name="speaking_review_table_part"),
     path("questions/<int:question_id>/memorized/", views.mark_question_memorized, name="speaking_question_memorized"),

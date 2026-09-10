@@ -2,6 +2,7 @@
 
 from django.db.models import Count, F, Max, Prefetch, Q
 from django.shortcuts import get_object_or_404, redirect, render
+from django.urls import reverse
 from django.utils import timezone
 from django.utils.http import url_has_allowed_host_and_scheme
 from django.views.decorators.http import require_http_methods
@@ -89,6 +90,15 @@ def review_table(request, part=None):
             "part_label": dict(SpeakingTopic.PART_CHOICES).get(part, "Part 1"),
         },
     )
+
+
+def review_fragment_redirect(request, part="part1", anchor=""):
+    if part not in {"part1", "part2", "part3"}:
+        part = "part1"
+    target = reverse("speaking_review_table_part", kwargs={"part": part})
+    if anchor:
+        target = f"{target}#{anchor}"
+    return redirect(target)
 
 
 @require_http_methods(["POST"])
