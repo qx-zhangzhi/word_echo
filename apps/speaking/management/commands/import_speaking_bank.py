@@ -117,7 +117,7 @@ class Command(BaseCommand):
         parser.add_argument(
             "--reset-part1",
             action="store_true",
-            help="Delete all existing Part 1 topics before importing the Markdown source.",
+            help="Hide existing Part 1 topics before importing the Markdown source. Memorized records are preserved.",
         )
 
     def handle(self, *args, **options):
@@ -129,10 +129,11 @@ class Command(BaseCommand):
         if not entries:
             raise CommandError("No entries found. Expected headings like: ## 2026-09-02 | Part 1 | Headphones")
 
-        deleted_part1_topics = 0
+        hidden_part1_topics = 0
         if options["reset_part1"]:
-            deleted_part1_topics = SpeakingTopic.objects.filter(part="part1").count()
-            SpeakingTopic.objects.filter(part="part1").delete()
+            part1_topics = SpeakingTopic.objects.filter(part="part1", is_active=True)
+            hidden_part1_topics = part1_topics.count()
+            part1_topics.update(is_active=False)
 
         topic_count = 0
         question_count = 0
@@ -177,5 +178,7 @@ class Command(BaseCommand):
         )
         if options["reset_part1"]:
             self.stdout.write(
-                self.style.WARNING(f"Reset Part 1 before import: deleted {deleted_part1_topics} topics")
+                self.style.WARNING(
+                    f"Reset Part 1 before import: hid {hidden_part1_topics} topics and preserved memorized records"
+                )
             )
