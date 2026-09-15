@@ -34,3 +34,7 @@ def home(request):
 
 def reading_signals(request):
     return render(request, "dashboard/reading_signals.html")
+
+
+def reading_tfng(request):
+    return render(request, "dashboard/reading_tfng.html")

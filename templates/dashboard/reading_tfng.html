@@ -1,0 +1,588 @@
+{% extends "base.html" %}
+
+{% block title %}雅思阅读判断题技巧{% endblock %}
+
+{% block extra_css %}
+    .mobile-container {
+        max-width: 1120px;
+    }
+
+    .tfng-shell {
+        display: grid;
+        grid-template-columns: minmax(0, 0.82fr) minmax(0, 1.18fr);
+        gap: 18px;
+        align-items: start;
+    }
+
+    .tfng-hero {
+        position: sticky;
+        top: 12px;
+        background: #111827;
+        color: #ffffff;
+        border-radius: 8px;
+        padding: 22px;
+        box-shadow: 0 14px 34px rgba(17, 24, 39, 0.18);
+    }
+
+    .tfng-kicker {
+        color: #86efac;
+        font-size: 14px;
+        font-weight: 800;
+    }
+
+    .tfng-title {
+        margin-top: 8px;
+        font-size: 32px;
+        line-height: 1.2;
+        font-weight: 900;
+    }
+
+    .tfng-summary {
+        margin-top: 12px;
+        color: #dcfce7;
+        font-size: 16px;
+        line-height: 1.75;
+    }
+
+    .decision-box {
+        margin-top: 18px;
+        background: rgba(255, 255, 255, 0.1);
+        border: 1px solid rgba(255, 255, 255, 0.16);
+        border-radius: 8px;
+        padding: 14px;
+    }
+
+    .decision-row {
+        display: grid;
+        grid-template-columns: 72px minmax(0, 1fr);
+        gap: 10px;
+        align-items: start;
+        color: #f0fdf4;
+        font-size: 15px;
+        line-height: 1.6;
+    }
+
+    .decision-row + .decision-row {
+        margin-top: 10px;
+        padding-top: 10px;
+        border-top: 1px solid rgba(255, 255, 255, 0.14);
+    }
+
+    .answer-tag {
+        display: inline-flex;
+        justify-content: center;
+        border-radius: 999px;
+        padding: 3px 8px;
+        background: #22c55e;
+        color: #052e16;
+        font-size: 12px;
+        font-weight: 900;
+    }
+
+    .answer-tag.false {
+        background: #fb7185;
+        color: #4c0519;
+    }
+
+    .answer-tag.ng {
+        background: #fde047;
+        color: #422006;
+    }
+
+    .rule-card {
+        margin-top: 14px;
+        background: #ffffff;
+        color: #111827;
+        border-radius: 8px;
+        padding: 15px;
+    }
+
+    .rule-title {
+        font-size: 16px;
+        font-weight: 900;
+    }
+
+    .rule-text {
+        margin-top: 8px;
+        color: #4b5563;
+        font-size: 14px;
+        line-height: 1.75;
+    }
+
+    .quick-links {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 10px;
+        margin-top: 14px;
+    }
+
+    .quick-link {
+        display: block;
+        background: #ffffff;
+        color: #111827;
+        border-radius: 8px;
+        padding: 12px;
+        font-size: 14px;
+        font-weight: 900;
+    }
+
+    .quick-link span {
+        display: block;
+        margin-top: 5px;
+        color: #64748b;
+        font-size: 13px;
+        font-weight: 500;
+        line-height: 1.45;
+    }
+
+    .tfng-panel {
+        background: #ffffff;
+        border: 1px solid #e5e7eb;
+        border-radius: 8px;
+        overflow: hidden;
+        box-shadow: 0 8px 22px rgba(15, 23, 42, 0.06);
+    }
+
+    .panel-head {
+        padding: 18px 18px 14px;
+        border-bottom: 1px solid #e5e7eb;
+        background: #f8fafc;
+    }
+
+    .panel-title {
+        font-size: 21px;
+        line-height: 1.35;
+        font-weight: 900;
+    }
+
+    .panel-subtitle {
+        margin-top: 6px;
+        color: #64748b;
+        font-size: 14px;
+        line-height: 1.6;
+    }
+
+    .tfng-list {
+        display: grid;
+    }
+
+    .tfng-item {
+        display: grid;
+        grid-template-columns: 146px minmax(0, 1fr);
+        gap: 16px;
+        padding: 17px 18px;
+        border-bottom: 1px solid #eef2f7;
+    }
+
+    .tfng-item:last-child {
+        border-bottom: none;
+    }
+
+    .item-cn {
+        font-size: 17px;
+        font-weight: 900;
+        line-height: 1.4;
+    }
+
+    .item-en {
+        margin-top: 4px;
+        color: #64748b;
+        font-size: 13px;
+        line-height: 1.45;
+        overflow-wrap: anywhere;
+    }
+
+    .tfng-label {
+        color: #334155;
+        font-size: 13px;
+        font-weight: 900;
+    }
+
+    .tfng-text {
+        margin-top: 5px;
+        color: #111827;
+        font-size: 15px;
+        line-height: 1.65;
+    }
+
+    .tfng-text code {
+        display: inline-block;
+        margin: 2px 2px;
+        padding: 2px 6px;
+        border-radius: 6px;
+        background: #ecfdf5;
+        color: #047857;
+        font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+        font-size: 13px;
+        line-height: 1.5;
+    }
+
+    .avoid {
+        margin-top: 10px;
+        padding: 10px 12px;
+        border-left: 4px solid #f97316;
+        background: #fff7ed;
+        border-radius: 0 8px 8px 0;
+        color: #7c2d12;
+        font-size: 14px;
+        line-height: 1.65;
+    }
+
+    .truth-table {
+        display: grid;
+        grid-template-columns: repeat(3, minmax(0, 1fr));
+        gap: 10px;
+        padding: 16px 18px 18px;
+        background: #f8fafc;
+        border-bottom: 1px solid #e5e7eb;
+    }
+
+    .truth-card {
+        background: #ffffff;
+        border: 1px solid #e5e7eb;
+        border-radius: 8px;
+        padding: 12px;
+    }
+
+    .truth-card strong {
+        display: block;
+        margin-bottom: 6px;
+        font-size: 15px;
+    }
+
+    .truth-card span {
+        color: #475569;
+        font-size: 13px;
+        line-height: 1.55;
+    }
+
+    .back-row {
+        margin-bottom: 12px;
+    }
+
+    @media (max-width: 860px) {
+        .tfng-shell {
+            grid-template-columns: 1fr;
+        }
+
+        .tfng-hero {
+            position: static;
+        }
+    }
+
+    @media (max-width: 640px) {
+        .page {
+            padding: 12px 10px 24px;
+        }
+
+        .tfng-title {
+            font-size: 27px;
+        }
+
+        .tfng-item {
+            grid-template-columns: 1fr;
+            gap: 10px;
+            padding: 16px;
+        }
+
+        .truth-table,
+        .quick-links {
+            grid-template-columns: 1fr;
+        }
+    }
+{% endblock %}
+
+{% block content %}
+<div class="back-row">
+    <a class="back-link" href="/">← 返回 Word Echo</a>
+</div>
+
+<div class="tfng-shell">
+    <aside class="tfng-hero">
+        <div class="tfng-kicker">IELTS Reading · True / False / Not Given</div>
+        <h1 class="tfng-title">判断题信号词与避坑</h1>
+        <div class="tfng-summary">
+            判断题不是判断常识，也不是看题干和原文有没有同一个词。核心是比较：对象、范围、程度、方向、关系。
+        </div>
+
+        <div class="decision-box">
+            <div class="decision-row">
+                <span class="answer-tag">TRUE</span>
+                <span>原文明确说了同一件事，只是换了说法。</span>
+            </div>
+            <div class="decision-row">
+                <span class="answer-tag false">FALSE</span>
+                <span>原文明确说反了：对象、范围、程度、时间、因果、比较方向有冲突。</span>
+            </div>
+            <div class="decision-row">
+                <span class="answer-tag ng">NG</span>
+                <span>原文没有回答题干那件事；尤其是题干多加了比较、原因、目的、唯一性。</span>
+            </div>
+        </div>
+
+        <div class="rule-card">
+            <div class="rule-title">最稳动作</div>
+            <div class="rule-text">
+                划题干核心词，定位原文后只对 5 件事：对象同不同，范围大不大，程度准不准，方向反不反，关系有没有。
+            </div>
+        </div>
+
+        <div class="quick-links">
+            <a class="quick-link" href="/reading/signals/">段落匹配技巧<span>目的、方法、发现、优缺点</span></a>
+            <a class="quick-link" href="#ng">Not Given 专区<span>最容易误判的地方</span></a>
+        </div>
+    </aside>
+
+    <main class="tfng-panel">
+        <div class="panel-head">
+            <div class="panel-title">题干信号 → 原文确认 → 假信号</div>
+            <div class="panel-subtitle">做题时不要急着选。先定位，再判断题干有没有“偷偷加戏”。</div>
+        </div>
+
+        <div class="truth-table">
+            <div class="truth-card">
+                <strong>True 的感觉</strong>
+                <span>原文和题干说的是同一个对象、同一个范围、同一个方向。词可以完全不同。</span>
+            </div>
+            <div class="truth-card">
+                <strong>False 的感觉</strong>
+                <span>原文有明确相反证据。不是“没找到”，而是“找到了反着说”。</span>
+            </div>
+            <div class="truth-card" id="ng">
+                <strong>Not Given 的感觉</strong>
+                <span>题干问了一个关系或细节，原文只说了相关背景，没有给答案。</span>
+            </div>
+        </div>
+
+        <div class="tfng-list">
+            <section class="tfng-item">
+                <div>
+                    <div class="item-cn">绝对词</div>
+                    <div class="item-en">all / every / always / never / only / must / completely</div>
+                </div>
+                <div>
+                    <div class="tfng-label">怎么判断</div>
+                    <div class="tfng-text">题干有绝对词，原文必须也支持这个绝对范围。原文如果只是 <code>some</code><code>many</code><code>often</code><code>can</code><code>may</code>，通常不能 True。</div>
+                    <div class="avoid">避坑：绝对词不一定必错，但必须有强证据。one of the most 不等于 the most；almost all 不等于 all。</div>
+                </div>
+            </section>
+
+            <section class="tfng-item">
+                <div>
+                    <div class="item-cn">程度词</div>
+                    <div class="item-en">most / many / some / few / mainly / partly / rarely</div>
+                </div>
+                <div>
+                    <div class="tfng-label">怎么判断</div>
+                    <div class="tfng-text">精确对程度：<code>some</code> 不等于 <code>most</code>，<code>many</code> 不等于 <code>all</code>，<code>mainly</code> 不等于 <code>partly</code>。</div>
+                    <div class="avoid">避坑：题干把程度放大，经常是 False；原文根本没说比例，常是 Not Given。</div>
+                </div>
+            </section>
+
+            <section class="tfng-item">
+                <div>
+                    <div class="item-cn">比较关系</div>
+                    <div class="item-en">more than / less than / better than / compared with</div>
+                </div>
+                <div>
+                    <div class="tfng-label">怎么判断</div>
+                    <div class="tfng-text">比较题要看三点：比较对象、比较指标、比较方向。A 比 B 快，不能变成 B 比 A 快。</div>
+                    <div class="avoid">避坑：原文只说 A 很快，题干说 A 比 B 快，通常 Not Given，因为比较关系没给。</div>
+                </div>
+            </section>
+
+            <section class="tfng-item">
+                <div>
+                    <div class="item-cn">最高级唯一</div>
+                    <div class="item-en">first / only / best / largest / most important / unique</div>
+                </div>
+                <div>
+                    <div class="tfng-label">怎么判断</div>
+                    <div class="tfng-text">题干出现“首次、唯一、最大、最重要”，原文必须明确给这个极值或唯一性。</div>
+                    <div class="avoid">避坑：原文说 a major reason，题干写 the main reason，程度变强；原文说 one of the first，题干写 the first，范围变窄。</div>
+                </div>
+            </section>
+
+            <section class="tfng-item">
+                <div>
+                    <div class="item-cn">时间顺序</div>
+                    <div class="item-en">before / after / since / until / previously / now / in 1990</div>
+                </div>
+                <div>
+                    <div class="tfng-label">怎么判断</div>
+                    <div class="tfng-text">对齐时间点和先后顺序。原文是 after，题干变 before，就是明确反向。</div>
+                    <div class="avoid">避坑：since 有时是“自从”，有时是“因为”。时间题优先找年份、年代、世纪、before/after 的对象。</div>
+                </div>
+            </section>
+
+            <section class="tfng-item">
+                <div>
+                    <div class="item-cn">因果关系</div>
+                    <div class="item-en">because / due to / lead to / result in / caused by</div>
+                </div>
+                <div>
+                    <div class="tfng-label">怎么判断</div>
+                    <div class="tfng-text">原文必须也表达 A 导致 B。只说 A 和 B 同时出现，不等于 A 导致 B。</div>
+                    <div class="avoid">避坑：题干常偷偷加 because。原文没给原因，只是相关或并列，优先 Not Given，不要凭常识选 True。</div>
+                </div>
+            </section>
+
+            <section class="tfng-item">
+                <div>
+                    <div class="item-cn">目的关系</div>
+                    <div class="item-en">aim / purpose / in order to / designed to / intended to</div>
+                </div>
+                <div>
+                    <div class="tfng-label">怎么判断</div>
+                    <div class="tfng-text">题干说“为了……”，原文要有目的信号：<code>to do</code><code>in order to</code><code>designed to</code><code>intended to</code><code>aimed at</code>。</div>
+                    <div class="avoid">避坑：原文说做了 X，题干说做 X 是为了 Y。若目的 Y 没出现，多半 Not Given。</div>
+                </div>
+            </section>
+
+            <section class="tfng-item">
+                <div>
+                    <div class="item-cn">对象偷换</div>
+                    <div class="item-en">children / adults / researchers / participants / government</div>
+                </div>
+                <div>
+                    <div class="tfng-label">怎么判断</div>
+                    <div class="tfng-text">主语必须一致或能被原文包含。children 不能随便换成 adults；researchers 不能随便换成 participants。</div>
+                    <div class="avoid">避坑：对象不同不一定都是 False。原文没提题干对象，是 Not Given；原文明确排除题干对象，才是 False。</div>
+                </div>
+            </section>
+
+            <section class="tfng-item">
+                <div>
+                    <div class="item-cn">范围偷换</div>
+                    <div class="item-en">all countries / some areas / urban / rural / worldwide</div>
+                </div>
+                <div>
+                    <div class="tfng-label">怎么判断</div>
+                    <div class="tfng-text">看地点、人群、时间、条件有没有被扩大或缩小。原文 some countries，题干 all countries，通常不成立。</div>
+                    <div class="avoid">避坑：原文小范围，题干大范围，多数是 False 或 Not Given；判断关键是原文有没有明确否定大范围。</div>
+                </div>
+            </section>
+
+            <section class="tfng-item">
+                <div>
+                    <div class="item-cn">否定表达</div>
+                    <div class="item-en">not / no / never / fail to / lack / without / little</div>
+                </div>
+                <div>
+                    <div class="tfng-label">怎么判断</div>
+                    <div class="tfng-text">遇到否定词，先判断方向。原文有，题干无；原文无，题干有，都可能变成反向。</div>
+                    <div class="avoid">避坑：little 有时是“几乎没有”，a little 是“有一点”。fail to do 是“未能做成”，不要漏掉。</div>
+                </div>
+            </section>
+
+            <section class="tfng-item">
+                <div>
+                    <div class="item-cn">观点事实</div>
+                    <div class="item-en">believe / argue / claim / according to / evidence shows</div>
+                </div>
+                <div>
+                    <div class="tfng-label">怎么判断</div>
+                    <div class="tfng-text">原文是某人观点，题干说成客观事实，要小心。题干如果写 X believed，原文也要对应 X 的观点。</div>
+                    <div class="avoid">避坑：Some experts believe A 不等于 A is true。观点来源、说话人、态度方向都要对齐。</div>
+                </div>
+            </section>
+
+            <section class="tfng-item">
+                <div>
+                    <div class="item-cn">可能性</div>
+                    <div class="item-en">may / might / can / could / likely / certain / impossible</div>
+                </div>
+                <div>
+                    <div class="tfng-label">怎么判断</div>
+                    <div class="tfng-text">区分“可能、能够、很可能、一定”。原文 may，题干改成 will/certain，程度变强。</div>
+                    <div class="avoid">避坑：can 表示“有能力/可能”，不是一定发生。likely 也不是 certain。</div>
+                </div>
+            </section>
+
+            <section class="tfng-item">
+                <div>
+                    <div class="item-cn">数量数字</div>
+                    <div class="item-en">number / percent / twice / half / majority / minority</div>
+                </div>
+                <div>
+                    <div class="tfng-label">怎么判断</div>
+                    <div class="tfng-text">数字题不只看数字，还要看单位、对象、时间、比例基准。50% of adults 不等于 50% of children。</div>
+                    <div class="avoid">避坑：more than 50% 和 about 50% 不同；increase by 20% 和 increase to 20% 不同。</div>
+                </div>
+            </section>
+
+            <section class="tfng-item">
+                <div>
+                    <div class="item-cn">条件限制</div>
+                    <div class="item-en">if / unless / only if / provided that / except / limited to</div>
+                </div>
+                <div>
+                    <div class="tfng-label">怎么判断</div>
+                    <div class="tfng-text">条件词决定一句话什么时候成立。题干省掉条件，可能把一句有限成立的话变成普遍成立。</div>
+                    <div class="avoid">避坑：原文 under certain conditions，题干直接说 always works，范围被放大，通常 False。</div>
+                </div>
+            </section>
+
+            <section class="tfng-item">
+                <div>
+                    <div class="item-cn">定义改写</div>
+                    <div class="item-en">means / refers to / is known as / called / defined as</div>
+                </div>
+                <div>
+                    <div class="tfng-label">怎么判断</div>
+                    <div class="tfng-text">定义题看核心属性是否一致。题干可能把定义里的必要条件删掉，或把例子说成定义。</div>
+                    <div class="avoid">避坑：such as 后面是例子，不是定义。A includes B 不等于 A means B。</div>
+                </div>
+            </section>
+
+            <section class="tfng-item">
+                <div>
+                    <div class="item-cn">变化趋势</div>
+                    <div class="item-en">increase / decline / become / no longer / used to / now</div>
+                </div>
+                <div>
+                    <div class="tfng-label">怎么判断</div>
+                    <div class="tfng-text">看变化方向和时间起点。原文说增加，题干说减少，是 False；原文说现在，题干说过去，要核时间。</div>
+                    <div class="avoid">避坑：原文只描述现在状态，题干说“已经变得……”，如果没有过去对比，可能 Not Given。</div>
+                </div>
+            </section>
+
+            <section class="tfng-item">
+                <div>
+                    <div class="item-cn">例子归纳</div>
+                    <div class="item-en">for example / such as / including / one case</div>
+                </div>
+                <div>
+                    <div class="tfng-label">怎么判断</div>
+                    <div class="tfng-text">例子只能证明它所在句子的观点，不能自动推广到所有情况。</div>
+                    <div class="avoid">避坑：原文说 A is an example of B，题干说 all B are A，范围倒置，通常不成立。</div>
+                </div>
+            </section>
+
+            <section class="tfng-item">
+                <div>
+                    <div class="item-cn">让步转折</div>
+                    <div class="item-en">although / however / nevertheless / yet / instead / rather than</div>
+                </div>
+                <div>
+                    <div class="tfng-label">怎么判断</div>
+                    <div class="tfng-text">转折后常是作者重点，但判断题可能考转折前的让步内容。题干问哪一半，就读哪一半。</div>
+                    <div class="avoid">避坑：看到 however 不要自动选反。先确认题干说的是被反驳的旧观点，还是转折后的新观点。</div>
+                </div>
+            </section>
+
+            <section class="tfng-item">
+                <div>
+                    <div class="item-cn">Not Given 专门判断</div>
+                    <div class="item-en">missing comparison / missing reason / missing purpose / missing number</div>
+                </div>
+                <div>
+                    <div class="tfng-label">怎么判断</div>
+                    <div class="tfng-text">题干和原文主题相关，但题干多问了一个原文没回答的东西：谁更多、为什么、为了什么、是否唯一、是否所有。</div>
+                    <div class="avoid">避坑：相关不等于 True；没找到反话也不等于 False。原文没有回答，就是 Not Given。</div>
+                </div>
+            </section>
+        </div>
+    </main>
+</div>
+{% endblock %}
