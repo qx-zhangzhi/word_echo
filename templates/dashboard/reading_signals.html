@@ -1,0 +1,606 @@
+{% extends "base.html" %}
+
+{% block title %}雅思阅读段落匹配信号词{% endblock %}
+
+{% block extra_css %}
+    .mobile-container {
+        max-width: 1120px;
+    }
+
+    .reading-shell {
+        display: grid;
+        grid-template-columns: minmax(0, 0.78fr) minmax(0, 1.22fr);
+        gap: 18px;
+        align-items: start;
+    }
+
+    .reading-hero {
+        position: sticky;
+        top: 12px;
+        background: #0f172a;
+        color: #ffffff;
+        border-radius: 8px;
+        padding: 22px;
+        box-shadow: 0 14px 34px rgba(15, 23, 42, 0.18);
+    }
+
+    .reading-kicker {
+        color: #93c5fd;
+        font-size: 14px;
+        font-weight: 800;
+    }
+
+    .reading-title {
+        margin-top: 8px;
+        font-size: 32px;
+        line-height: 1.2;
+        font-weight: 900;
+    }
+
+    .reading-summary {
+        margin-top: 12px;
+        color: #dbeafe;
+        font-size: 16px;
+        line-height: 1.75;
+    }
+
+    .formula-box {
+        margin-top: 18px;
+        background: rgba(255, 255, 255, 0.1);
+        border: 1px solid rgba(255, 255, 255, 0.16);
+        border-radius: 8px;
+        padding: 14px;
+    }
+
+    .formula-step {
+        display: flex;
+        gap: 10px;
+        align-items: flex-start;
+        color: #eff6ff;
+        font-size: 15px;
+        line-height: 1.6;
+    }
+
+    .formula-step + .formula-step {
+        margin-top: 9px;
+    }
+
+    .step-mark {
+        flex: 0 0 auto;
+        width: 24px;
+        height: 24px;
+        border-radius: 50%;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        background: #38bdf8;
+        color: #082f49;
+        font-size: 13px;
+        font-weight: 900;
+    }
+
+    .rule-card {
+        margin-top: 14px;
+        background: #ffffff;
+        color: #111827;
+        border-radius: 8px;
+        padding: 15px;
+    }
+
+    .rule-title {
+        font-size: 16px;
+        font-weight: 900;
+    }
+
+    .rule-text {
+        margin-top: 8px;
+        color: #4b5563;
+        font-size: 14px;
+        line-height: 1.75;
+    }
+
+    .signal-panel {
+        background: #ffffff;
+        border: 1px solid #e5e7eb;
+        border-radius: 8px;
+        overflow: hidden;
+        box-shadow: 0 8px 22px rgba(15, 23, 42, 0.06);
+    }
+
+    .panel-head {
+        padding: 18px 18px 14px;
+        border-bottom: 1px solid #e5e7eb;
+        background: #f8fafc;
+    }
+
+    .panel-title {
+        font-size: 21px;
+        line-height: 1.35;
+        font-weight: 900;
+    }
+
+    .panel-subtitle {
+        margin-top: 6px;
+        color: #64748b;
+        font-size: 14px;
+        line-height: 1.6;
+    }
+
+    .signal-list {
+        display: grid;
+        gap: 0;
+    }
+
+    .signal-item {
+        display: grid;
+        grid-template-columns: 138px minmax(0, 1fr);
+        gap: 16px;
+        padding: 17px 18px;
+        border-bottom: 1px solid #eef2f7;
+    }
+
+    .signal-item:last-child {
+        border-bottom: none;
+    }
+
+    .signal-kind {
+        min-width: 0;
+    }
+
+    .kind-cn {
+        font-size: 17px;
+        font-weight: 900;
+        line-height: 1.4;
+    }
+
+    .kind-en {
+        margin-top: 4px;
+        color: #64748b;
+        font-size: 13px;
+        line-height: 1.45;
+        overflow-wrap: anywhere;
+    }
+
+    .signal-detail {
+        min-width: 0;
+    }
+
+    .signal-label {
+        color: #334155;
+        font-size: 13px;
+        font-weight: 900;
+    }
+
+    .signal-text {
+        margin-top: 5px;
+        color: #111827;
+        font-size: 15px;
+        line-height: 1.65;
+    }
+
+    .signal-text code {
+        display: inline-block;
+        margin: 2px 2px;
+        padding: 2px 6px;
+        border-radius: 6px;
+        background: #eef6ff;
+        color: #075985;
+        font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+        font-size: 13px;
+        line-height: 1.5;
+    }
+
+    .avoid {
+        margin-top: 10px;
+        padding: 10px 12px;
+        border-left: 4px solid #f59e0b;
+        background: #fffbeb;
+        border-radius: 0 8px 8px 0;
+        color: #713f12;
+        font-size: 14px;
+        line-height: 1.65;
+    }
+
+    .mini-grid {
+        display: grid;
+        grid-template-columns: repeat(3, minmax(0, 1fr));
+        gap: 10px;
+        margin-top: 14px;
+    }
+
+    .mini-card {
+        background: #ffffff;
+        color: #111827;
+        border-radius: 8px;
+        padding: 12px;
+    }
+
+    .mini-card strong {
+        display: block;
+        margin-bottom: 5px;
+        color: #0f172a;
+        font-size: 14px;
+    }
+
+    .mini-card span {
+        color: #475569;
+        font-size: 13px;
+        line-height: 1.5;
+    }
+
+    .back-row {
+        margin-bottom: 12px;
+    }
+
+    @media (max-width: 860px) {
+        .reading-shell {
+            grid-template-columns: 1fr;
+        }
+
+        .reading-hero {
+            position: static;
+        }
+    }
+
+    @media (max-width: 640px) {
+        .page {
+            padding: 12px 10px 24px;
+        }
+
+        .reading-title {
+            font-size: 27px;
+        }
+
+        .signal-item {
+            grid-template-columns: 1fr;
+            gap: 10px;
+            padding: 16px;
+        }
+
+        .mini-grid {
+            grid-template-columns: 1fr;
+        }
+    }
+{% endblock %}
+
+{% block content %}
+<div class="back-row">
+    <a class="back-link" href="/">← 返回 Word Echo</a>
+</div>
+
+<div class="reading-shell">
+    <aside class="reading-hero">
+        <div class="reading-kicker">IELTS Reading · 段落匹配</div>
+        <h1 class="reading-title">信号词扫读法</h1>
+        <div class="reading-summary">
+            题干里的抽象词不是拿来翻译的，是拿来判断信息类型的。先把它归类，再去原文扫对应结构，最后读前后一句确认。
+        </div>
+
+        <div class="formula-box">
+            <div class="formula-step"><span class="step-mark">1</span><span>题干划词：aim, method, finding, drawback, comparison...</span></div>
+            <div class="formula-step"><span class="step-mark">2</span><span>判断类型：目的、方法、发现、优缺点、原因、结果、对比...</span></div>
+            <div class="formula-step"><span class="step-mark">3</span><span>扫原文信号：to do, by, found that, lead to, however...</span></div>
+            <div class="formula-step"><span class="step-mark">4</span><span>读前后一句：确认是同义匹配，不是碰巧撞词。</span></div>
+        </div>
+
+        <div class="rule-card">
+            <div class="rule-title">一句话原则</div>
+            <div class="rule-text">
+                信号词是定位雷达，不是答案机器。扫到以后必须做“前后一句确认”：能不能回答题干问的那个信息功能。
+            </div>
+        </div>
+
+        <div class="mini-grid">
+            <div class="mini-card">
+                <strong>最稳</strong>
+                <span>目的找 to do，方法找 by/using，研究找 found that。</span>
+            </div>
+            <div class="mini-card">
+                <strong>最危险</strong>
+                <span>to, by, as, found, however 都可能是假信号。</span>
+            </div>
+            <div class="mini-card">
+                <strong>最后确认</strong>
+                <span>太宽、太细、方向反、只是例子，都不要选。</span>
+            </div>
+        </div>
+    </aside>
+
+    <main class="signal-panel">
+        <div class="panel-head">
+            <div class="panel-title">常见题干词 → 原文信号 → 假信号避坑</div>
+            <div class="panel-subtitle">适合段落匹配、信息匹配、人物观点匹配。Heading 题也能用，但 Heading 最后要回到整段主旨。</div>
+        </div>
+
+        <div class="signal-list">
+            <section class="signal-item">
+                <div class="signal-kind">
+                    <div class="kind-cn">目的</div>
+                    <div class="kind-en">aim / purpose / goal / objective / intention</div>
+                </div>
+                <div class="signal-detail">
+                    <div class="signal-label">扫这些</div>
+                    <div class="signal-text"><code>to do</code><code>in order to</code><code>so as to</code><code>designed to</code><code>intended to</code><code>aimed at</code><code>for the purpose of</code></div>
+                    <div class="avoid">避坑：不是所有 to do 都是目的。能自然翻成“为了……”，才算目的；people began to leave 只是动作。</div>
+                </div>
+            </section>
+
+            <section class="signal-item">
+                <div class="signal-kind">
+                    <div class="kind-cn">方法</div>
+                    <div class="kind-en">method / approach / technique / way / means / strategy</div>
+                </div>
+                <div class="signal-detail">
+                    <div class="signal-label">扫这些</div>
+                    <div class="signal-text"><code>by</code><code>using</code><code>via</code><code>through</code><code>with</code><code>based on</code><code>rely on</code><code>make use of</code></div>
+                    <div class="avoid">避坑：by 可能接年份、作者、地点。by 1990 是时间，written by Smith 是作者；后面接动作、工具、手段才是方法。</div>
+                </div>
+            </section>
+
+            <section class="signal-item">
+                <div class="signal-kind">
+                    <div class="kind-cn">研究发现</div>
+                    <div class="kind-en">finding / discovery / found / conclusion</div>
+                </div>
+                <div class="signal-detail">
+                    <div class="signal-label">扫这些</div>
+                    <div class="signal-text"><code>found that</code><code>showed that</code><code>revealed that</code><code>suggested that</code><code>discovered that</code><code>according to</code><code>research indicates</code></div>
+                    <div class="avoid">避坑：found 也可能是“找到某物”。主语是 study, research, researchers, survey, experiment 时，才更像研究发现。</div>
+                </div>
+            </section>
+
+            <section class="signal-item">
+                <div class="signal-kind">
+                    <div class="kind-cn">优点</div>
+                    <div class="kind-en">advantage / benefit / positive / strength / merit</div>
+                </div>
+                <div class="signal-detail">
+                    <div class="signal-label">扫这些</div>
+                    <div class="signal-text"><code>beneficial</code><code>advantageous</code><code>useful</code><code>valuable</code><code>effective</code><code>efficient</code><code>improve</code><code>save time</code><code>reduce cost</code></div>
+                    <div class="avoid">避坑：原文常不写 advantage，而写具体好处。更快、更便宜、更准、更安全、更方便，都可能是 benefit。</div>
+                </div>
+            </section>
+
+            <section class="signal-item">
+                <div class="signal-kind">
+                    <div class="kind-cn">缺点限制</div>
+                    <div class="kind-en">disadvantage / drawback / limitation / weakness / negative</div>
+                </div>
+                <div class="signal-detail">
+                    <div class="signal-label">扫这些</div>
+                    <div class="signal-text"><code>limited</code><code>limitation</code><code>weakness</code><code>shortcoming</code><code>drawback</code><code>expensive</code><code>difficult</code><code>unreliable</code><code>too...to</code><code>lack</code></div>
+                    <div class="avoid">避坑：limited to adults 只是研究范围，不一定是缺点。要看它有没有导致不能推广、效果差、成本高、无法使用。</div>
+                </div>
+            </section>
+
+            <section class="signal-item">
+                <div class="signal-kind">
+                    <div class="kind-cn">原因</div>
+                    <div class="kind-en">reason / cause / why / factor / explanation</div>
+                </div>
+                <div class="signal-detail">
+                    <div class="signal-label">扫这些</div>
+                    <div class="signal-text"><code>because</code><code>since</code><code>as</code><code>due to</code><code>owing to</code><code>caused by</code><code>result from</code><code>reason for</code><code>explain</code></div>
+                    <div class="avoid">避坑：as 很滑，可能是“当……时 / 作为…… / 因为……”。只有能换成 because 的 as 才算原因。</div>
+                </div>
+            </section>
+
+            <section class="signal-item">
+                <div class="signal-kind">
+                    <div class="kind-cn">结果影响</div>
+                    <div class="kind-en">effect / impact / consequence / result / outcome</div>
+                </div>
+                <div class="signal-detail">
+                    <div class="signal-label">扫这些</div>
+                    <div class="signal-text"><code>lead to</code><code>result in</code><code>cause</code><code>produce</code><code>therefore</code><code>thus</code><code>consequently</code><code>as a result</code><code>affect</code></div>
+                    <div class="avoid">避坑：result 可能是“研究结果”，不一定是因果结果。能画成 A → B，才是 consequence 或 impact。</div>
+                </div>
+            </section>
+
+            <section class="signal-item">
+                <div class="signal-kind">
+                    <div class="kind-cn">例子案例</div>
+                    <div class="kind-en">example / case / illustration / instance</div>
+                </div>
+                <div class="signal-detail">
+                    <div class="signal-label">扫这些</div>
+                    <div class="signal-text"><code>for example</code><code>for instance</code><code>such as</code><code>like</code><code>including</code><code>a case</code><code>one example</code><code>illustrated by</code></div>
+                    <div class="avoid">避坑：段落匹配问“提到例子”可以直接用；Heading 题不要选例子本身，要找例子证明的观点。</div>
+                </div>
+            </section>
+
+            <section class="signal-item">
+                <div class="signal-kind">
+                    <div class="kind-cn">定义概念</div>
+                    <div class="kind-en">definition / meaning / concept / term / known as</div>
+                </div>
+                <div class="signal-detail">
+                    <div class="signal-label">扫这些</div>
+                    <div class="signal-text"><code>refers to</code><code>means</code><code>is defined as</code><code>is known as</code><code>called</code><code>describes</code><code>is a kind of</code></div>
+                    <div class="avoid">避坑：is / are 太常见。确认它是不是在解释“这个词是什么意思”，而不是普通描述。</div>
+                </div>
+            </section>
+
+            <section class="signal-item">
+                <div class="signal-kind">
+                    <div class="kind-cn">变化发展</div>
+                    <div class="kind-en">change / shift / development / evolution / transition</div>
+                </div>
+                <div class="signal-detail">
+                    <div class="signal-label">扫这些</div>
+                    <div class="signal-text"><code>change</code><code>shift</code><code>become</code><code>develop</code><code>evolve</code><code>no longer</code><code>used to</code><code>once</code><code>previously</code><code>now</code><code>increasingly</code></div>
+                    <div class="avoid">避坑：develop 也可能是“开发产品”。找过去 vs 现在、旧情况 vs 新情况，才是变化类。</div>
+                </div>
+            </section>
+
+            <section class="signal-item">
+                <div class="signal-kind">
+                    <div class="kind-cn">对比差异</div>
+                    <div class="kind-en">comparison / contrast / difference / unlike / similarity</div>
+                </div>
+                <div class="signal-detail">
+                    <div class="signal-label">扫这些</div>
+                    <div class="signal-text"><code>while</code><code>whereas</code><code>unlike</code><code>compared with</code><code>in contrast</code><code>by contrast</code><code>different from</code><code>similar to</code><code>however</code></div>
+                    <div class="avoid">避坑：however 只是转折，不一定是对比。确认是否真的有两个对象 A 和 B。</div>
+                </div>
+            </section>
+
+            <section class="signal-item">
+                <div class="signal-kind">
+                    <div class="kind-cn">解决建议</div>
+                    <div class="kind-en">solution / measure / recommendation / response</div>
+                </div>
+                <div class="signal-detail">
+                    <div class="signal-label">扫这些</div>
+                    <div class="signal-text"><code>solve</code><code>address</code><code>tackle</code><code>deal with</code><code>overcome</code><code>prevent</code><code>reduce</code><code>should</code><code>need to</code><code>recommend</code><code>propose</code></div>
+                    <div class="avoid">避坑：should 可能只是空泛态度。后面有具体动作，才是 solution 或 measure。</div>
+                </div>
+            </section>
+
+            <section class="signal-item">
+                <div class="signal-kind">
+                    <div class="kind-cn">未来预测</div>
+                    <div class="kind-en">future / prediction / prospect / expectation / likely</div>
+                </div>
+                <div class="signal-detail">
+                    <div class="signal-label">扫这些</div>
+                    <div class="signal-text"><code>will</code><code>would</code><code>may</code><code>might</code><code>could</code><code>likely</code><code>expected to</code><code>predicted to</code><code>in the future</code><code>next decade</code></div>
+                    <div class="avoid">避坑：may / could 也可能只是“不确定”。有未来时间或 expected / predicted，才更稳。</div>
+                </div>
+            </section>
+
+            <section class="signal-item">
+                <div class="signal-kind">
+                    <div class="kind-cn">争议不确定</div>
+                    <div class="kind-en">debate / controversy / disagreement / uncertainty / doubt</div>
+                </div>
+                <div class="signal-detail">
+                    <div class="signal-label">扫这些</div>
+                    <div class="signal-text"><code>debate</code><code>controversial</code><code>disagree</code><code>dispute</code><code>unclear</code><code>uncertain</code><code>unknown</code><code>question</code><code>doubt</code><code>not clear</code></div>
+                    <div class="avoid">避坑：question 可能只是普通“问题”。要看是不是观点冲突、结论未定、证据不足。</div>
+                </div>
+            </section>
+
+            <section class="signal-item">
+                <div class="signal-kind">
+                    <div class="kind-cn">分类类型</div>
+                    <div class="kind-en">type / category / class / group / classification / kind</div>
+                </div>
+                <div class="signal-detail">
+                    <div class="signal-label">扫这些</div>
+                    <div class="signal-text"><code>type</code><code>kind</code><code>category</code><code>group</code><code>class</code><code>can be divided into</code><code>fall into</code><code>consist of</code></div>
+                    <div class="avoid">避坑：多个例子不等于分类。分类必须有“分成几类”的结构。</div>
+                </div>
+            </section>
+
+            <section class="signal-item">
+                <div class="signal-kind">
+                    <div class="kind-cn">过程步骤</div>
+                    <div class="kind-en">process / stage / step / phase / procedure / sequence</div>
+                </div>
+                <div class="signal-detail">
+                    <div class="signal-label">扫这些</div>
+                    <div class="signal-text"><code>first</code><code>then</code><code>next</code><code>finally</code><code>stage</code><code>step</code><code>phase</code><code>process</code><code>followed by</code></div>
+                    <div class="avoid">避坑：first 可能只是“第一次”。有连续动作链，才是 process。</div>
+                </div>
+            </section>
+
+            <section class="signal-item">
+                <div class="signal-kind">
+                    <div class="kind-cn">重要性作用</div>
+                    <div class="kind-en">importance / significance / role / function / contribution</div>
+                </div>
+                <div class="signal-detail">
+                    <div class="signal-label">扫这些</div>
+                    <div class="signal-text"><code>important</code><code>significant</code><code>crucial</code><code>essential</code><code>key</code><code>play a role</code><code>contribute to</code><code>help</code><code>enable</code><code>allow</code></div>
+                    <div class="avoid">避坑：important 只是评价词。确认它“对什么起作用”，以及作用结果是什么。</div>
+                </div>
+            </section>
+
+            <section class="signal-item">
+                <div class="signal-kind">
+                    <div class="kind-cn">数量趋势</div>
+                    <div class="kind-en">increase / decrease / trend / growth / decline / rise / fall</div>
+                </div>
+                <div class="signal-detail">
+                    <div class="signal-label">扫这些</div>
+                    <div class="signal-text"><code>increase</code><code>rise</code><code>grow</code><code>expand</code><code>more</code><code>decrease</code><code>decline</code><code>fall</code><code>drop</code><code>reduce</code><code>fewer</code><code>less</code></div>
+                    <div class="avoid">避坑：单个数字不是趋势。至少要有变化方向：上升、下降、变多、变少。</div>
+                </div>
+            </section>
+
+            <section class="signal-item">
+                <div class="signal-kind">
+                    <div class="kind-cn">时间顺序</div>
+                    <div class="kind-en">when / period / era / before / after / sequence</div>
+                </div>
+                <div class="signal-detail">
+                    <div class="signal-label">扫这些</div>
+                    <div class="signal-text"><code>before</code><code>after</code><code>during</code><code>until</code><code>since</code><code>from...to</code><code>in the 19th century</code><code>early</code><code>later</code><code>previously</code></div>
+                    <div class="avoid">避坑：before / after 后面可能是逻辑顺序，不一定是时间。题干问 period 时，优先找年份、世纪、年代、阶段名。</div>
+                </div>
+            </section>
+
+            <section class="signal-item">
+                <div class="signal-kind">
+                    <div class="kind-cn">人物观点</div>
+                    <div class="kind-en">claim / argue / believe / opinion / view / attitude</div>
+                </div>
+                <div class="signal-detail">
+                    <div class="signal-label">扫这些</div>
+                    <div class="signal-text"><code>argue</code><code>claim</code><code>believe</code><code>think</code><code>suggest</code><code>point out</code><code>according to</code><code>in X's view</code><code>X says</code></div>
+                    <div class="avoid">避坑：according to 后面可能是资料来源，不一定是观点。确认是否有“某人认为/主张”的内容。</div>
+                </div>
+            </section>
+
+            <section class="signal-item">
+                <div class="signal-kind">
+                    <div class="kind-cn">态度评价</div>
+                    <div class="kind-en">attitude / criticism / support / concern / praise</div>
+                </div>
+                <div class="signal-detail">
+                    <div class="signal-label">扫这些</div>
+                    <div class="signal-text"><code>support</code><code>criticise</code><code>praise</code><code>worry</code><code>concern</code><code>doubt</code><code>welcome</code><code>oppose</code><code>positive</code><code>negative</code><code>skeptical</code></div>
+                    <div class="avoid">避坑：态度题看方向，不看单词情绪。concern 可能是“涉及”，也可能是“担忧”；要读前后句。</div>
+                </div>
+            </section>
+
+            <section class="signal-item">
+                <div class="signal-kind">
+                    <div class="kind-cn">极值唯一</div>
+                    <div class="kind-en">first / only / most / least / best / worst</div>
+                </div>
+                <div class="signal-detail">
+                    <div class="signal-label">扫这些</div>
+                    <div class="signal-text"><code>first</code><code>only</code><code>unique</code><code>the most</code><code>the least</code><code>largest</code><code>smallest</code><code>best</code><code>worst</code><code>never</code><code>always</code></div>
+                    <div class="avoid">避坑：first 可能是步骤，也可能是历史首次。题干问“首次/唯一/最大”时，要确认比较范围。</div>
+                </div>
+            </section>
+
+            <section class="signal-item">
+                <div class="signal-kind">
+                    <div class="kind-cn">让步反驳</div>
+                    <div class="kind-en">although / however / nevertheless / instead / rather than</div>
+                </div>
+                <div class="signal-detail">
+                    <div class="signal-label">扫这些</div>
+                    <div class="signal-text"><code>although</code><code>though</code><code>while</code><code>however</code><code>nevertheless</code><code>yet</code><code>instead</code><code>rather than</code><code>not...but</code></div>
+                    <div class="avoid">避坑：转折前后都可能被出题。Heading 通常看转折后主观点；细节匹配要看题干问的是被否定内容还是作者主张。</div>
+                </div>
+            </section>
+
+            <section class="signal-item">
+                <div class="signal-kind">
+                    <div class="kind-cn">范围条件</div>
+                    <div class="kind-en">condition / exception / range / only if / unless</div>
+                </div>
+                <div class="signal-detail">
+                    <div class="signal-label">扫这些</div>
+                    <div class="signal-text"><code>if</code><code>only if</code><code>unless</code><code>provided that</code><code>under certain conditions</code><code>except</code><code>within</code><code>limited to</code><code>depend on</code></div>
+                    <div class="avoid">避坑：条件和限制很容易漏。看到题干有 only, except, specific, under conditions，一定读完整句。</div>
+                </div>
+            </section>
+        </div>
+    </main>
+</div>
+{% endblock %}

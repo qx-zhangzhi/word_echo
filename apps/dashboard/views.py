@@ -30,3 +30,7 @@ def home(request):
         "top_wrong_words": top_wrong_words,
     }
     return render(request, "dashboard/home.html", context)
+
+
+def reading_signals(request):
+    return render(request, "dashboard/reading_signals.html")
