@@ -66,7 +66,7 @@ def _part2_switch_notes():
     in_table = False
     new_numbers = {"新 01": 27, "新 03": 28, "新 04": 29, "新 05": 30, "新 06": 31}
     for line in source.splitlines():
-        if line.startswith("## 31 题切换表"):
+        if line.startswith("## ") and "题切换表" in line:
             in_table = True
             continue
         if in_table and line.startswith("## "):
@@ -108,6 +108,7 @@ def _part2_material_units(questions_by_title):
                 "shared_facts": note.get("shared_facts", ""),
                 "focus": note.get("focus", ""),
                 "memorized_at": question.memorized_at if question else None,
+                "season": question.topic.season if question else "",
                 "url": (
                     reverse("speaking_review_table_part", kwargs={"part": "part2"})
                     + f"#question-{question.id}"
@@ -173,6 +174,8 @@ def part2_guide(request):
         "preferred_pdf_originals": PREFERRED_PDF_ORIGINALS,
         "material_units": material_units,
         "unit_groups": UNIT_GROUPS,
+        "part2_count": len(PART2_TOPIC_TITLES),
+        "unit_count": len(UNIT_QUESTION_NUMBERS),
     })
 
 
@@ -203,6 +206,10 @@ def review_table(request, part=None):
     if sort not in {"default", "unmemorized", "recent"}:
         sort = "default"
 
+    season = request.GET.get("season", "all")
+    if season not in {"all", "2026/05-08", "2026/9-12"}:
+        season = "all"
+
     active_questions = (
         SpeakingQuestion.objects
         .filter(is_active=True)
@@ -230,6 +237,9 @@ def review_table(request, part=None):
         .distinct()
     )
 
+    if season != "all":
+        topics = topics.filter(description__contains=f"Season: {season}")
+
     if sort == "unmemorized":
         topics = topics.order_by("-unmemorized_question_count", "part", "sort_order", "id")
     elif sort == "recent":
@@ -252,6 +262,7 @@ def review_table(request, part=None):
             "memorized_questions": memorized_questions,
             "sort": sort,
             "part": part,
+            "season": season,
             "part_label": dict(SpeakingTopic.PART_CHOICES).get(part, "Part 1"),
         },
     )

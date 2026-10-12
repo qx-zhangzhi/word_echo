@@ -18,6 +18,8 @@ PART_MAP = {
     "Part 3": "part3",
 }
 
+SEASON_RE = re.compile(r"^\*\*Season:\*\* (?P<season>2026/(?:05-08|9-12))$")
+
 
 def clean_block(lines):
     while lines and not lines[0].strip():
@@ -45,6 +47,10 @@ def split_entries(text):
             continue
 
         if current:
+            season_match = SEASON_RE.match(line)
+            if season_match:
+                current["season"] = season_match.group("season")
+                continue
             current["lines"].append(line)
 
     if current:
@@ -147,7 +153,10 @@ class Command(BaseCommand):
                 title=entry["title"],
                 part=entry["part"],
                 defaults={
-                    "description": f"Imported from {source.name}. Last review entry: {entry['date']}.",
+                    "description": (
+                        f"Imported from {source.name}. Last review entry: {entry['date']}."
+                        + (f"\nSeason: {entry['season']}" if entry.get("season") else "")
+                    ),
                     "sort_order": topic_index,
                     "is_active": True,
                 },

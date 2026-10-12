@@ -126,15 +126,15 @@
         <a class="back-link" href="{% url 'speaking_review_table_part' 'part2' %}">← 返回 Part 2 复习表</a>
         <h1>Part 2 串题地图</h1>
         <div class="guide-meta">
-            <span><strong>31</strong> 道已选原题</span>
-            <span><strong>19</strong> 个复习单元</span>
+            <span><strong>{{ part2_count }}</strong> 道已选原题</span>
+            <span><strong>{{ unit_count }}</strong> 个复习单元</span>
             <span><strong>22</strong> 个目前缺素材的 PDF 条目</span>
         </div>
     </header>
 
     <nav class="guide-nav" aria-label="串题地图">
         <a class="{% if view == 'units' %}active{% endif %}" href="?view=units">复习单元</a>
-        <a class="{% if view == 'map' %}active{% endif %}" href="?view=map">31 题切换</a>
+        <a class="{% if view == 'map' %}active{% endif %}" href="?view=map">{{ part2_count }} 题切换</a>
         <a class="{% if view == 'pdf' %}active{% endif %}" href="?view=pdf">PDF 对照</a>
         <a class="gaps {% if view == 'gaps' %}active{% endif %}" href="?view=gaps">串不起来</a>
     </nav>
@@ -166,6 +166,11 @@
             </div>
             <div class="unit-toolbar-row">
                 <input id="unit-search" class="guide-search" type="search" placeholder="搜索素材或题目" aria-label="搜索素材或题目">
+                <select id="unit-season" class="guide-search" style="flex:0 1 155px" aria-label="题季">
+                    <option value="all">全部题季</option>
+                    <option value="2026/9-12">2026/9–12</option>
+                    <option value="2026/05-08">2026/05–08</option>
+                </select>
                 <span id="unit-count" class="guide-count" aria-live="polite"></span>
             </div>
         </div>
@@ -183,9 +188,9 @@
                     </summary>
                     <div class="unit-topic-list">
                         {% for question in unit.questions %}
-                            <details class="material-topic" id="unit-question-{{ question.number }}">
+                            <details class="material-topic" id="unit-question-{{ question.number }}" data-season="{{ question.season }}" data-memorized="{% if question.memorized_at %}true{% else %}false{% endif %}">
                                 <summary>
-                                    <span class="topic-title"><strong>{{ question.number|stringformat:"02d" }} · {{ question.label }}</strong><small>{{ question.title }}</small></span>
+                                    <span class="topic-title"><strong>{{ question.label }}</strong><small>{{ question.title }}{% if question.season %} · {{ question.season }}{% endif %}</small></span>
                                     <span class="topic-status {% if question.memorized_at %}done{% endif %}">{% if question.memorized_at %}已背 {{ question.memorized_at|date:"m-d" }}{% else %}未背{% endif %}</span>
                                     <span class="topic-chevron" aria-hidden="true">›</span>
                                 </summary>
@@ -280,6 +285,7 @@
     if (view === 'units') {
         const units = Array.from(page.querySelectorAll('.material-unit'));
         const unitSearch = document.getElementById('unit-search');
+        const unitSeason = document.getElementById('unit-season');
         const unitCount = document.getElementById('unit-count');
         const groupButtons = Array.from(page.querySelectorAll('[data-unit-group]'));
         let selectedGroup = 'all';
@@ -292,12 +298,22 @@
             let visibleTopics = 0;
             units.forEach(unit => {
                 const matchesGroup = selectedGroup === 'all' || unit.dataset.group === selectedGroup;
-                const matchesQuery = !query || unit.dataset.searchText.includes(query);
-                unit.hidden = !(matchesGroup && matchesQuery);
+                const titleMatches = !query || unit.querySelector('.unit-name').textContent.toLocaleLowerCase().includes(query);
+                const topics = Array.from(unit.querySelectorAll('.material-topic'));
+                topics.forEach(topic => {
+                    const matchesSeason = unitSeason.value === 'all' || topic.dataset.season === unitSeason.value;
+                    const matchesQuery = titleMatches || topic.textContent.toLocaleLowerCase().includes(query);
+                    topic.hidden = !(matchesSeason && matchesQuery);
+                });
+                const topicCount = topics.filter(topic => !topic.hidden).length;
+                const memorizedCount = topics.filter(topic => !topic.hidden && topic.dataset.memorized === 'true').length;
+                unit.querySelector('.unit-name small').textContent = `${unit.dataset.group} · ${topicCount} 道题`;
+                unit.querySelector('.unit-progress').textContent = `已背 ${memorizedCount}/${topicCount}`;
+                unit.hidden = !matchesGroup || topicCount === 0;
                 if (!unit.hidden) {
                     visibleUnits++;
-                    visibleTopics += unit.querySelectorAll('.material-topic').length;
-                    if (query) unit.open = true;
+                    visibleTopics += topicCount;
+                    if (query || unitSeason.value !== 'all') unit.open = true;
                 }
             });
             unitCount.textContent = `${visibleUnits} 个素材 · ${visibleTopics} 道题`;
@@ -310,6 +326,7 @@
             filterUnits();
         }));
         unitSearch.addEventListener('input', filterUnits);
+        unitSeason.addEventListener('change', filterUnits);
 
         if (window.location.hash.startsWith('#unit-')) {
             const target = document.querySelector(window.location.hash);

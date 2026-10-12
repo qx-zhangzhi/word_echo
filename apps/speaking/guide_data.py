@@ -30,6 +30,9 @@ PART2_TOPIC_TITLES = {
     29: "A famous person being interviewed",
     30: "A very organized person",
     31: "A noisy place you have been to",
+    32: "A person who did something difficult and was successful",
+    33: "A natural place in your city",
+    34: "Saving money to buy something special",
 }
 
 UNIT_QUESTION_NUMBERS = {
@@ -40,7 +43,7 @@ UNIT_QUESTION_NUMBERS = {
     "M05": (6,),
     "M06": (7, 28),
     "M07": (8,),
-    "M08": (9, 25),
+    "M08": (9, 25, 32),
     "M09": (11, 16, 21, 30),
     "M10": (12,),
     "M11": (13, 31),
@@ -52,6 +55,8 @@ UNIT_QUESTION_NUMBERS = {
     "M17": (22,),
     "M18": (23,),
     "M19": (26,),
+    "M20": (33,),
+    "M21": (34,),
 }
 
 PART2_TOPIC_LABELS = {
@@ -65,6 +70,7 @@ PART2_TOPIC_LABELS = {
     24: "长久目标 / 抱负", 25: "遇到困难终成功的人", 26: "改变重要想法",
     27: "对结果开心的重要决定", 28: "快乐人士", 29: "看过的名人采访",
     30: "有条理的人", 31: "嘈杂地",
+    32: "做困难事情并成功的人", 33: "喜欢的城市自然之地", 34: "攒钱买特别物品",
 }
 
 UNIT_META = {
@@ -87,6 +93,8 @@ UNIT_META = {
     "M17": ("北京垃圾分类", "规则与沟通"),
     "M18": ("女儿老师微信", "规则与沟通"),
     "M19": ("家庭与工作观念", "家庭与家乡"),
+    "M20": ("北京家附近的公园", "旅行与地点"),
+    "M21": ("攒钱买无线耳机", "学习与媒体"),
 }
 
 UNIT_GROUPS = ("人物", "工作", "旅行与地点", "家庭与家乡", "学习与媒体", "规则与沟通")

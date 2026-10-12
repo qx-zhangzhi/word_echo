@@ -11,6 +11,11 @@
         margin-top: 10px;
     }
 
+    .season-badge { display: inline-block; margin-top: 4px; padding: 2px 6px; border-radius: 4px; background: #fff3dc; color: #805a13; font-size: 11px; font-weight: 700; white-space: nowrap; }
+    .season-filter { display: flex; gap: 8px; flex-wrap: wrap; margin-top: 12px; }
+    .season-filter a { padding: 7px 10px; border: 1px solid #d1d5db; border-radius: 5px; color: #4b5563; font-size: 13px; }
+    .season-filter a.active { background: #0f766e; border-color: #0f766e; color: #fff; }
+
     .index-grid {
         display: grid;
         grid-template-columns: repeat(auto-fit, minmax(132px, 1fr));
@@ -301,7 +306,7 @@
         <a class="part-link {% if part == 'part3' %}active{% endif %}" href="{% url 'speaking_review_table_part' 'part3' %}">Part 3</a>
     </div>
     {% if part == 'part2' %}
-        <a class="part2-guide-link" href="{% url 'speaking_part2_guide' %}">查看 Part 2 串题地图：19 个素材单元 / PDF 对照 / 缺口</a>
+        <a class="part2-guide-link" href="{% url 'speaking_part2_guide' %}">查看 Part 2 串题地图：素材分类 / PDF 对照 / 缺口</a>
     {% endif %}
     <div class="review-summary">
         <span class="tag">Topic {{ topics|length }}</span>
@@ -309,10 +314,17 @@
         <span class="tag green">已背 {{ memorized_questions }}</span>
     </div>
     <div class="sort-row">
-        <a class="sort-link {% if sort == 'default' %}active{% endif %}" href="{% url 'speaking_review_table_part' part %}">题库顺序</a>
-        <a class="sort-link {% if sort == 'unmemorized' %}active{% endif %}" href="{% url 'speaking_review_table_part' part %}?sort=unmemorized">未背优先</a>
-        <a class="sort-link {% if sort == 'recent' %}active{% endif %}" href="{% url 'speaking_review_table_part' part %}?sort=recent">最近背过</a>
+        <a class="sort-link {% if sort == 'default' %}active{% endif %}" href="?sort=default&amp;season={{ season|urlencode }}">题库顺序</a>
+        <a class="sort-link {% if sort == 'unmemorized' %}active{% endif %}" href="?sort=unmemorized&amp;season={{ season|urlencode }}">未背优先</a>
+        <a class="sort-link {% if sort == 'recent' %}active{% endif %}" href="?sort=recent&amp;season={{ season|urlencode }}">最近背过</a>
     </div>
+    {% if part != 'part1' %}
+    <nav class="season-filter" aria-label="题季">
+        <a class="{% if season == 'all' %}active{% endif %}" href="?sort={{ sort }}&amp;season=all">全部题季</a>
+        <a class="{% if season == '2026/9-12' %}active{% endif %}" href="?sort={{ sort }}&amp;season=2026%2F9-12">2026/9–12</a>
+        <a class="{% if season == '2026/05-08' %}active{% endif %}" href="?sort={{ sort }}&amp;season=2026%2F05-08">2026/05–08</a>
+    </nav>
+    {% endif %}
 </div>
 
 {% if topics %}
@@ -322,6 +334,7 @@
             {% for topic in topics %}
                 <a class="index-link" href="#topic-{{ topic.id }}">
                     {{ topic.get_part_display }} · {{ topic.title }}
+                    {% if topic.season %}<span class="season-badge">{{ topic.season }}</span>{% endif %}
                     <span class="index-progress">已背 {{ topic.memorized_question_count }}/{{ topic.active_question_count }}</span>
                 </a>
             {% endfor %}
@@ -330,7 +343,7 @@
 
     {% for topic in topics %}
         <div id="topic-{{ topic.id }}" class="section-title topic-heading">
-            <span>{{ topic.get_part_display }} · {{ topic.title }}</span>
+            <span>{{ topic.get_part_display }} · {{ topic.title }} {% if topic.season %}<span class="season-badge">{{ topic.season }}</span>{% endif %}</span>
             <span class="topic-progress">已背 {{ topic.memorized_question_count }}/{{ topic.active_question_count }}</span>
         </div>
 

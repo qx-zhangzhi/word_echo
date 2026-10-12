@@ -36,6 +36,13 @@ class SpeakingTopic(models.Model):
     def __str__(self):
         return f"{self.get_part_display()} - {self.title}"
 
+    @property
+    def season(self):
+        for line in self.description.splitlines():
+            if line.startswith("Season: "):
+                return line.removeprefix("Season: ").strip()
+        return ""
+
 
 class SpeakingQuestion(models.Model):
     """某个话题下的具体问题。"""
