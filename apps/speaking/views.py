@@ -1,14 +1,179 @@
 # apps/speaking/views.py
 
+from pathlib import Path
+
 from django.db.models import Count, F, Max, Prefetch, Q
 from django.shortcuts import get_object_or_404, redirect, render
 from django.urls import reverse
 from django.utils import timezone
 from django.utils.http import url_has_allowed_host_and_scheme
 from django.views.decorators.http import require_http_methods
+from markdown_it import MarkdownIt
 
 from .forms import SpeakingTopicForm, SpeakingQuestionForm
+from .guide_data import (
+    PART2_TOPIC_LABELS,
+    PART2_TOPIC_TITLES,
+    PREFERRED_PDF_ORIGINALS,
+    UNIT_GROUPS,
+    UNIT_META,
+    UNIT_QUESTION_NUMBERS,
+)
 from .models import SpeakingTopic, SpeakingQuestion, SpeakingAnswer
+
+
+GUIDE_CONTENT_DIR = Path(__file__).resolve().parent / "content"
+
+
+def _guide_sections(filename):
+    source = (GUIDE_CONTENT_DIR / filename).read_text(encoding="utf-8")
+    lines = source.splitlines()
+    markdown = MarkdownIt("commonmark", {"html": False}).enable("table")
+    tokens = markdown.parse(source)
+    headings = [
+        (token.map[0], tokens[index + 1].content)
+        for index, token in enumerate(tokens)
+        if token.type == "heading_open" and token.tag == "h2"
+    ]
+
+    sections = []
+    for index, (start, title) in enumerate(headings):
+        end = headings[index + 1][0] if index + 1 < len(headings) else len(lines)
+        body_tokens = markdown.parse("\n".join(lines[start + 1:end]))
+        for token in body_tokens:
+            if token.type != "inline":
+                continue
+            for child in token.children or []:
+                if child.type != "link_open":
+                    continue
+                href = child.attrGet("href") or ""
+                if href.startswith("part2_integrated_guide.md"):
+                    child.attrSet("href", reverse("speaking_part2_guide") + "?view=map")
+                elif href.startswith("part2_pdf_coverage.md"):
+                    child.attrSet("href", reverse("speaking_part2_guide") + "?view=pdf")
+        sections.append({
+            "title": title,
+            "html": markdown.renderer.render(body_tokens, markdown.options, {}),
+            "id": f"section-{index + 1}",
+        })
+    return sections
+
+
+def _part2_switch_notes():
+    """Read the maintained switching table instead of duplicating its advice."""
+    source = (GUIDE_CONTENT_DIR / "part2_integrated_guide.md").read_text(encoding="utf-8")
+    rows = {}
+    in_table = False
+    new_numbers = {"新 01": 27, "新 03": 28, "新 04": 29, "新 05": 30, "新 06": 31}
+    for line in source.splitlines():
+        if line.startswith("## 31 题切换表"):
+            in_table = True
+            continue
+        if in_table and line.startswith("## "):
+            break
+        if not in_table or not line.startswith("|"):
+            continue
+        cells = [cell.strip() for cell in line.strip("|").split("|")]
+        if len(cells) != 5 or cells[0] in {"原编号", "---"}:
+            continue
+        number = new_numbers.get(cells[0])
+        if number is None and cells[0].isdigit():
+            number = int(cells[0])
+        if number:
+            rows[number] = {
+                "shared_facts": cells[3].replace("**", "").replace("`", ""),
+                "focus": cells[4].replace("**", "").replace("`", ""),
+            }
+    return rows
+
+
+def _part2_material_units(questions_by_title):
+    switch_notes = _part2_switch_notes()
+    units = []
+    for unit_id, numbers in UNIT_QUESTION_NUMBERS.items():
+        title, group = UNIT_META[unit_id]
+        unit_questions = []
+        for number in numbers:
+            english_title = PART2_TOPIC_TITLES[number]
+            question = questions_by_title.get(english_title)
+            note = switch_notes.get(number, {})
+            unit_questions.append({
+                "number": number,
+                "label": PART2_TOPIC_LABELS[number],
+                "title": english_title,
+                "question_text": question.question_text if question else "",
+                "answer": question.sample_answer if question else "",
+                "key_points": question.key_points if question else "",
+                "useful_expressions": question.useful_expressions if question else "",
+                "shared_facts": note.get("shared_facts", ""),
+                "focus": note.get("focus", ""),
+                "memorized_at": question.memorized_at if question else None,
+                "url": (
+                    reverse("speaking_review_table_part", kwargs={"part": "part2"})
+                    + f"#question-{question.id}"
+                ) if question else "",
+            })
+        units.append({
+            "id": unit_id,
+            "title": title,
+            "group": group,
+            "questions": unit_questions,
+            "question_count": len(unit_questions),
+            "memorized_count": sum(bool(item["memorized_at"]) for item in unit_questions),
+        })
+    return units
+
+
+def part2_guide(request):
+    view = request.GET.get("view", "units")
+    if view not in {"units", "map", "pdf", "gaps"}:
+        view = "units"
+
+    guide = _guide_sections("part2_integrated_guide.md")
+    coverage = _guide_sections("part2_pdf_coverage.md")
+    if view == "units":
+        sections = [
+            section for section in guide
+            if section["title"].startswith(("先背什么", "高复用单元", "其余 14", "复习顺序"))
+        ]
+    elif view == "map":
+        sections = [section for section in guide if "题切换表" in section["title"]]
+    elif view == "pdf":
+        sections = [section for section in coverage if section["title"].startswith(("5–8 月", "9–12 月"))]
+    else:
+        sections = [section for section in coverage if section["title"].startswith("目前串不起来")]
+
+    questions = (
+        SpeakingQuestion.objects
+        .filter(topic__part="part2", topic__is_active=True, topic__title__in=PART2_TOPIC_TITLES.values(), is_active=True)
+        .select_related("topic")
+        .order_by("topic__sort_order", "sort_order", "id")
+    )
+    questions_by_title = {}
+    for question in questions:
+        questions_by_title.setdefault(question.topic.title, question)
+
+    material_units = _part2_material_units(questions_by_title)
+
+    originals = {}
+    for number, title in PART2_TOPIC_TITLES.items():
+        question = questions_by_title.get(title)
+        if question and question.sample_answer:
+            originals[str(number)] = {
+                "title": title,
+                "answer": question.sample_answer,
+                "url": reverse("speaking_review_table_part", kwargs={"part": "part2"}) + f"#question-{question.id}",
+            }
+
+    return render(request, "speaking/part2_guide.html", {
+        "view": view,
+        "sections": sections,
+        "originals": originals,
+        "unit_question_numbers": UNIT_QUESTION_NUMBERS,
+        "preferred_pdf_originals": PREFERRED_PDF_ORIGINALS,
+        "material_units": material_units,
+        "unit_groups": UNIT_GROUPS,
+    })
 
 
 def topic_list(request):

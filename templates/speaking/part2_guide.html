@@ -1,0 +1,380 @@
+{% extends "speaking/mobile_base.html" %}
+
+{% block title %}Part 2 串题地图{% endblock %}
+
+{% block content %}
+<style>
+    .guide-page { max-width: 1160px; margin: 0 auto; color: #20312f; }
+    .guide-header { padding: 8px 2px 17px; border-bottom: 1px solid #d9e2dd; }
+    .guide-header .back-link { color: #0f766e; }
+    .guide-header h1 { margin: 0; font-size: 25px; line-height: 1.3; letter-spacing: 0; }
+    .guide-meta { display: flex; flex-wrap: wrap; gap: 8px 18px; margin-top: 11px; color: #52615c; font-size: 13px; }
+    .guide-meta strong { color: #172d27; font-size: 17px; }
+    .guide-nav { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); border-bottom: 1px solid #d9e2dd; margin-top: 14px; }
+    .guide-nav a { display: flex; align-items: center; justify-content: center; min-height: 44px; padding: 7px 5px; color: #52615c; font-size: 14px; font-weight: 700; text-align: center; border-bottom: 3px solid transparent; }
+    .guide-nav a.active { color: #0f766e; border-color: #0f766e; }
+    .guide-nav a.gaps.active { color: #a65720; border-color: #c86c37; }
+    .guide-caveat { margin: 15px 2px 0; padding: 9px 12px; border-left: 3px solid #c86c37; background: #fbf2e9; color: #70472d; font-size: 13px; line-height: 1.55; }
+    .guide-tools { display: flex; align-items: center; flex-wrap: wrap; gap: 10px; padding: 16px 2px 6px; }
+    .guide-search { flex: 1 1 230px; min-width: 0; min-height: 40px; border: 1px solid #c8d4ce; border-radius: 6px; padding: 8px 12px; background: #fff; color: #20312f; font: inherit; font-size: 14px; }
+    .guide-search:focus { outline: 2px solid #0f766e; outline-offset: 1px; }
+    .guide-filters { display: inline-flex; max-width: 100%; overflow-x: auto; border: 1px solid #c8d4ce; border-radius: 6px; background: #fff; }
+    .guide-filters button { flex: 0 0 auto; min-height: 38px; padding: 7px 12px; border: 0; border-right: 1px solid #d9e2dd; background: transparent; color: #52615c; font: inherit; font-size: 13px; font-weight: 700; cursor: pointer; }
+    .guide-filters button:last-child { border-right: 0; }
+    .guide-filters button[aria-pressed="true"] { background: #0f766e; color: #fff; }
+    .guide-count { margin-left: auto; color: #687771; font-size: 13px; white-space: nowrap; }
+    .guide-index { display: flex; flex-wrap: wrap; gap: 7px; padding: 11px 2px 2px; }
+    .guide-index a { display: inline-flex; align-items: center; min-height: 34px; padding: 5px 9px; border: 1px solid #c8d4ce; border-radius: 5px; background: #fff; color: #285c51; font-size: 13px; font-weight: 700; }
+    .guide-section { padding: 18px 2px 22px; border-bottom: 1px solid #d9e2dd; scroll-margin-top: 15px; }
+    .guide-section h2 { margin: 0 0 13px; font-size: 19px; line-height: 1.35; }
+    .guide-content { font-size: 14px; line-height: 1.7; overflow-wrap: anywhere; }
+    .guide-content h3 { margin: 22px 0 8px; padding-top: 15px; border-top: 1px solid #e3e9e5; color: #123f39; font-size: 16px; line-height: 1.45; scroll-margin-top: 16px; }
+    .guide-content h3:first-child { margin-top: 0; border-top: 0; padding-top: 0; }
+    .guide-content p { margin: 8px 0; }
+    .guide-content ul, .guide-content ol { margin: 8px 0 13px; padding-left: 21px; }
+    .guide-content li { margin: 5px 0; }
+    .guide-content strong { color: #213f35; }
+    .guide-content a { color: #0f766e; text-decoration: underline; text-underline-offset: 2px; }
+    .guide-content code { padding: 1px 4px; border-radius: 3px; background: #e9efea; color: #184d42; font-size: 0.93em; }
+    .guide-content blockquote { margin: 12px 0; padding: 7px 12px; border-left: 3px solid #0f766e; background: #eef5f0; }
+    .guide-content table { width: 100%; border-collapse: collapse; background: #fff; table-layout: fixed; }
+    .guide-content th, .guide-content td { padding: 9px 10px; border-bottom: 1px solid #e2e8e3; text-align: left; vertical-align: top; overflow-wrap: anywhere; }
+    .guide-content th { color: #41554c; background: #edf2ee; font-size: 12px; line-height: 1.4; }
+    .guide-content tr:hover td { background: #f8faf7; }
+    .guide-content td.status-direct { color: #08745f; font-weight: 800; }
+    .guide-content td.status-adapt { color: #9b641a; font-weight: 800; }
+    .guide-content td.status-gap { color: #b24e32; font-weight: 800; }
+    .guide-original { margin: 9px 0 10px; border: 1px solid #ccdcd2; border-radius: 6px; background: #f8fbf8; }
+    .guide-original summary { padding: 8px 11px; color: #0f6657; font-size: 13px; font-weight: 800; cursor: pointer; }
+    .guide-original[open] summary { border-bottom: 1px solid #dce8df; }
+    .guide-original-list { padding: 3px 11px 10px; }
+    .guide-original-item + .guide-original-item { margin-top: 14px; padding-top: 12px; border-top: 1px solid #dce8df; }
+    .guide-original-item h4 { margin: 6px 0 8px; font-size: 13px; line-height: 1.45; }
+    .guide-original-answer { margin: 0 0 8px; white-space: pre-line; color: #26352f; font-size: 14px; line-height: 1.75; }
+    .guide-original-link { color: #0f766e; font-size: 12px; font-weight: 700; text-decoration: underline; }
+    .guide-rewrite-label { margin: 7px 0 2px; color: #80552a; font-size: 12px; font-weight: 800; }
+    .guide-foot { display: flex; justify-content: space-between; align-items: center; gap: 10px; padding: 20px 2px; }
+    .guide-foot a { color: #0f766e; font-size: 14px; font-weight: 700; }
+    .guide-empty { padding: 22px 0; color: #687771; font-size: 14px; }
+    .unit-toolbar { position: sticky; top: 0; z-index: 4; padding: 12px 2px; background: rgba(247, 249, 247, 0.96); border-bottom: 1px solid #d9e2dd; }
+    .unit-groups { display: flex; gap: 6px; overflow-x: auto; padding: 1px 0 9px; scrollbar-width: thin; }
+    .unit-groups button { flex: 0 0 auto; min-height: 34px; padding: 6px 10px; border: 1px solid #c8d4ce; border-radius: 5px; background: #fff; color: #496159; font: inherit; font-size: 12px; font-weight: 750; cursor: pointer; }
+    .unit-groups button[aria-pressed="true"] { border-color: #0f766e; background: #0f766e; color: #fff; }
+    .unit-toolbar-row { display: flex; align-items: center; gap: 10px; }
+    .material-units { margin-top: 4px; }
+    .material-unit { border-bottom: 1px solid #d9e2dd; scroll-margin-top: 120px; }
+    .material-unit > summary { display: grid; grid-template-columns: 48px minmax(150px, 1fr) auto 22px; align-items: center; gap: 10px; min-height: 66px; padding: 10px 2px; cursor: pointer; list-style: none; }
+    .material-unit > summary::-webkit-details-marker, .material-topic > summary::-webkit-details-marker { display: none; }
+    .unit-code { color: #0f766e; font-size: 12px; font-weight: 850; }
+    .unit-name { min-width: 0; }
+    .unit-name strong { display: block; color: #1d332c; font-size: 16px; line-height: 1.35; }
+    .unit-name small { display: block; margin-top: 3px; color: #718078; font-size: 12px; }
+    .unit-progress { color: #53665e; font-size: 12px; white-space: nowrap; }
+    .unit-chevron { color: #789087; font-size: 18px; transition: transform .18s ease; }
+    .material-unit[open] .unit-chevron { transform: rotate(90deg); }
+    .unit-topic-list { padding: 0 0 15px 58px; }
+    .material-topic { border-top: 1px solid #e4eae6; }
+    .material-topic > summary { display: grid; grid-template-columns: minmax(0, 1fr) auto 18px; align-items: center; gap: 9px; padding: 12px 0; cursor: pointer; list-style: none; }
+    .topic-title strong { display: block; color: #213c34; font-size: 14px; line-height: 1.4; }
+    .topic-title small { display: block; margin-top: 2px; color: #6d7b75; font-size: 11px; line-height: 1.35; }
+    .topic-status { padding: 3px 7px; border-radius: 4px; background: #edf1ee; color: #67756f; font-size: 11px; font-weight: 750; white-space: nowrap; }
+    .topic-status.done { background: #e4f2ec; color: #08745f; }
+    .topic-chevron { color: #819087; font-size: 15px; transition: transform .18s ease; }
+    .material-topic[open] .topic-chevron { transform: rotate(90deg); }
+    .topic-body { padding: 1px 0 18px; }
+    .switch-notes { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin: 2px 0 16px; }
+    .switch-note { padding: 10px 12px; border-left: 3px solid #91a79d; background: #f1f5f2; color: #46574f; font-size: 13px; line-height: 1.6; }
+    .switch-note.focus { border-left-color: #c86c37; background: #fbf2e9; color: #68472f; }
+    .switch-note b { display: block; margin-bottom: 2px; color: #27463d; }
+    .answer-heading { margin: 0 0 7px; color: #273a34; font-size: 12px; font-weight: 800; }
+    .full-answer { margin: 0; color: #25342f; font-size: 14px; line-height: 1.78; }
+    .topic-actions { margin-top: 12px; }
+    .topic-actions a { color: #0f766e; font-size: 12px; font-weight: 750; text-decoration: underline; text-underline-offset: 2px; }
+    [hidden] { display: none !important; }
+
+    @media (max-width: 720px) {
+        .guide-header h1 { font-size: 22px; }
+        .guide-nav a { font-size: 12px; line-height: 1.25; }
+        .guide-meta { gap: 5px 13px; }
+        .guide-tools { align-items: stretch; }
+        .guide-search { flex-basis: 100%; }
+        .guide-filters { width: 100%; }
+        .guide-filters button { flex: 1 0 auto; }
+        .guide-count { width: 100%; text-align: right; }
+        .unit-toolbar { top: 0; }
+        .unit-toolbar-row { align-items: stretch; flex-wrap: wrap; }
+        .unit-toolbar-row .guide-search { flex-basis: 100%; }
+        .material-unit > summary { grid-template-columns: 42px minmax(0, 1fr) auto 18px; gap: 7px; }
+        .unit-progress { font-size: 11px; }
+        .unit-topic-list { padding-left: 0; }
+        .switch-notes { grid-template-columns: 1fr; gap: 8px; }
+        .guide-section { padding-top: 16px; }
+        .guide-section h2 { font-size: 17px; }
+        .guide-content table, .guide-content thead, .guide-content tbody, .guide-content tr, .guide-content td { display: block; width: 100%; }
+        .guide-content thead { display: none; }
+        .guide-content tr { margin: 0 0 8px; padding: 9px 12px; border: 1px solid #dbe4dd; border-radius: 6px; background: #fff; }
+        .guide-content tr:hover td { background: transparent; }
+        .guide-content td { display: block; padding: 7px 0; border-bottom: 1px solid #edf1ed; font-size: 13px; line-height: 1.55; }
+        .guide-content td:last-child { border-bottom: 0; }
+        .guide-content td::before { display: block; content: attr(data-label); margin-bottom: 2px; color: #697870; font-size: 11px; font-weight: 700; }
+        .guide-content td p { margin: 0; }
+    }
+</style>
+
+<main class="guide-page" data-guide-view="{{ view }}">
+    <header class="guide-header">
+        <a class="back-link" href="{% url 'speaking_review_table_part' 'part2' %}">← 返回 Part 2 复习表</a>
+        <h1>Part 2 串题地图</h1>
+        <div class="guide-meta">
+            <span><strong>31</strong> 道已选原题</span>
+            <span><strong>19</strong> 个复习单元</span>
+            <span><strong>22</strong> 个目前缺素材的 PDF 条目</span>
+        </div>
+    </header>
+
+    <nav class="guide-nav" aria-label="串题地图">
+        <a class="{% if view == 'units' %}active{% endif %}" href="?view=units">复习单元</a>
+        <a class="{% if view == 'map' %}active{% endif %}" href="?view=map">31 题切换</a>
+        <a class="{% if view == 'pdf' %}active{% endif %}" href="?view=pdf">PDF 对照</a>
+        <a class="gaps {% if view == 'gaps' %}active{% endif %}" href="?view=gaps">串不起来</a>
+    </nav>
+
+    {% if view == 'pdf' %}
+        <p class="guide-caveat">9–12 月 PDF 只有话题标题、没有完整题卡；下方是素材适配判断，不代表考试命中率。“改写”需要补真实细节。</p>
+    {% elif view == 'gaps' %}
+        <p class="guide-caveat">以下是现有 26 篇无法稳妥回答的题目，不必为每个条目各背一篇新稿。</p>
+    {% endif %}
+
+    {% if view != 'units' %}
+        <div class="guide-tools">
+            <input id="guide-search" class="guide-search" type="search" placeholder="搜索题目、素材或备注" aria-label="搜索题目、素材或备注">
+            {% if view == 'pdf' %}
+                <div class="guide-filters" role="group" aria-label="覆盖状态">
+                    <button type="button" data-status="all" aria-pressed="true">全部</button>
+                    <button type="button" data-status="直用" aria-pressed="false">直用</button>
+                    <button type="button" data-status="改写" aria-pressed="false">改写</button>
+                    <button type="button" data-status="缺素材" aria-pressed="false">缺素材</button>
+                </div>
+            {% endif %}
+            <span id="guide-count" class="guide-count" aria-live="polite"></span>
+        </div>
+    {% else %}
+        <div class="unit-toolbar">
+            <div class="unit-groups" role="group" aria-label="内容分类">
+                <button type="button" data-unit-group="all" aria-pressed="true">全部</button>
+                {% for group in unit_groups %}<button type="button" data-unit-group="{{ group }}" aria-pressed="false">{{ group }}</button>{% endfor %}
+            </div>
+            <div class="unit-toolbar-row">
+                <input id="unit-search" class="guide-search" type="search" placeholder="搜索素材或题目" aria-label="搜索素材或题目">
+                <span id="unit-count" class="guide-count" aria-live="polite"></span>
+            </div>
+        </div>
+    {% endif %}
+
+    {% if view == 'units' %}
+        <div id="material-units" class="material-units">
+            {% for unit in material_units %}
+                <details class="material-unit" id="unit-{{ unit.id }}" data-group="{{ unit.group }}">
+                    <summary>
+                        <span class="unit-code">{{ unit.id }}</span>
+                        <span class="unit-name"><strong>{{ unit.title }}</strong><small>{{ unit.group }} · {{ unit.question_count }} 道题</small></span>
+                        <span class="unit-progress">已背 {{ unit.memorized_count }}/{{ unit.question_count }}</span>
+                        <span class="unit-chevron" aria-hidden="true">›</span>
+                    </summary>
+                    <div class="unit-topic-list">
+                        {% for question in unit.questions %}
+                            <details class="material-topic" id="unit-question-{{ question.number }}">
+                                <summary>
+                                    <span class="topic-title"><strong>{{ question.number|stringformat:"02d" }} · {{ question.label }}</strong><small>{{ question.title }}</small></span>
+                                    <span class="topic-status {% if question.memorized_at %}done{% endif %}">{% if question.memorized_at %}已背 {{ question.memorized_at|date:"m-d" }}{% else %}未背{% endif %}</span>
+                                    <span class="topic-chevron" aria-hidden="true">›</span>
+                                </summary>
+                                <div class="topic-body">
+                                    <div class="switch-notes">
+                                        <div class="switch-note"><b>共用事实</b>{{ question.shared_facts }}</div>
+                                        <div class="switch-note focus"><b>这题要突出</b>{{ question.focus }}</div>
+                                    </div>
+                                    {% if question.question_text %}<p class="answer-heading">题卡</p><p class="full-answer">{{ question.question_text|linebreaksbr }}</p>{% endif %}
+                                    <p class="answer-heading" style="margin-top:14px">完整答案</p>
+                                    <p class="full-answer">{{ question.answer|linebreaksbr }}</p>
+                                    {% if question.url %}<div class="topic-actions"><a href="{{ question.url }}">打开原题复习页</a></div>{% endif %}
+                                </div>
+                            </details>
+                        {% endfor %}
+                    </div>
+                </details>
+            {% endfor %}
+        </div>
+    {% else %}
+        <div id="guide-sections">
+            {% for section in sections %}
+                <section class="guide-section" id="{{ section.id }}">
+                    <h2>{{ section.title }}</h2>
+                    <div class="guide-content">{{ section.html|safe }}</div>
+                </section>
+            {% endfor %}
+        </div>
+    {% endif %}
+    {{ originals|json_script:"part2-originals" }}
+    {{ unit_question_numbers|json_script:"part2-unit-numbers" }}
+    {{ preferred_pdf_originals|json_script:"part2-preferred-sources" }}
+    <p id="guide-empty" class="guide-empty" hidden>没有匹配的题目</p>
+    <footer class="guide-foot">
+        <a href="{% url 'speaking_review_table_part' 'part2' %}">回到 Part 2 答案</a>
+        <a href="#">返回顶部 ↑</a>
+    </footer>
+</main>
+
+<script>
+(function () {
+    const page = document.querySelector('.guide-page');
+    const view = page.dataset.guideView;
+    const sections = Array.from(page.querySelectorAll('.guide-section'));
+    const rows = Array.from(page.querySelectorAll('.guide-content tbody tr'));
+    const originals = JSON.parse(document.getElementById('part2-originals').textContent);
+    const unitNumbers = JSON.parse(document.getElementById('part2-unit-numbers').textContent);
+    const preferredSources = JSON.parse(document.getElementById('part2-preferred-sources').textContent);
+
+    function originalDetails(numbers) {
+        const available = [...new Set(numbers)].map(number => originals[String(number)]).filter(Boolean);
+        if (!available.length) return null;
+        const details = document.createElement('details');
+        details.className = 'guide-original';
+        const summary = document.createElement('summary');
+        summary.textContent = available.length === 1 ? `原文 · ${available[0].title}` : `原文 · ${available.length} 篇可选`;
+        details.appendChild(summary);
+        const list = document.createElement('div');
+        list.className = 'guide-original-list';
+        available.forEach(original => {
+            const article = document.createElement('article');
+            article.className = 'guide-original-item';
+            const title = document.createElement('h4');
+            title.textContent = original.title;
+            const answer = document.createElement('p');
+            answer.className = 'guide-original-answer';
+            answer.textContent = original.answer;
+            const link = document.createElement('a');
+            link.className = 'guide-original-link';
+            link.href = original.url;
+            link.textContent = '打开原题复习页';
+            article.append(title, answer, link);
+            list.appendChild(article);
+        });
+        details.appendChild(list);
+        return details;
+    }
+
+    page.querySelectorAll('.guide-content table').forEach(table => {
+        const labels = Array.from(table.querySelectorAll('thead th'), cell => cell.textContent.trim());
+        table.querySelectorAll('tbody tr').forEach(row => {
+            Array.from(row.cells).forEach((cell, index) => {
+                cell.dataset.label = labels[index] || '';
+                const status = cell.textContent.trim();
+                if (status === '直用') cell.classList.add('status-direct');
+                if (status === '改写') cell.classList.add('status-adapt');
+                if (status === '缺素材') cell.classList.add('status-gap');
+            });
+        });
+    });
+
+    if (view === 'units') {
+        const units = Array.from(page.querySelectorAll('.material-unit'));
+        const unitSearch = document.getElementById('unit-search');
+        const unitCount = document.getElementById('unit-count');
+        const groupButtons = Array.from(page.querySelectorAll('[data-unit-group]'));
+        let selectedGroup = 'all';
+
+        units.forEach(unit => { unit.dataset.searchText = unit.textContent.toLocaleLowerCase(); });
+
+        function filterUnits() {
+            const query = unitSearch.value.trim().toLocaleLowerCase();
+            let visibleUnits = 0;
+            let visibleTopics = 0;
+            units.forEach(unit => {
+                const matchesGroup = selectedGroup === 'all' || unit.dataset.group === selectedGroup;
+                const matchesQuery = !query || unit.dataset.searchText.includes(query);
+                unit.hidden = !(matchesGroup && matchesQuery);
+                if (!unit.hidden) {
+                    visibleUnits++;
+                    visibleTopics += unit.querySelectorAll('.material-topic').length;
+                    if (query) unit.open = true;
+                }
+            });
+            unitCount.textContent = `${visibleUnits} 个素材 · ${visibleTopics} 道题`;
+            document.getElementById('guide-empty').hidden = visibleUnits !== 0;
+        }
+
+        groupButtons.forEach(button => button.addEventListener('click', () => {
+            selectedGroup = button.dataset.unitGroup;
+            groupButtons.forEach(item => item.setAttribute('aria-pressed', String(item === button)));
+            filterUnits();
+        }));
+        unitSearch.addEventListener('input', filterUnits);
+
+        if (window.location.hash.startsWith('#unit-')) {
+            const target = document.querySelector(window.location.hash);
+            if (target) {
+                target.open = true;
+                target.closest('.material-unit')?.setAttribute('open', '');
+            }
+        }
+        filterUnits();
+        return;
+    }
+
+    rows.forEach(row => {
+        row.dataset.searchText = row.textContent.toLocaleLowerCase();
+        let numbers = [];
+        if (view === 'map') {
+            const numberLabel = row.cells[0]?.textContent.trim() || '';
+            const newNumber = numberLabel === '新 01' ? 27 : numberLabel === '新 03' ? 28 : numberLabel === '新 04' ? 29 : numberLabel === '新 05' ? 30 : numberLabel === '新 06' ? 31 : null;
+            numbers = [newNumber || Number.parseInt(numberLabel, 10)];
+        } else if (view === 'pdf') {
+            const units = row.cells[2]?.textContent.match(/M\d{2}/g) || [];
+            const topic = row.cells[0]?.textContent.replace(/^\d+\s*/, '').trim();
+            numbers = preferredSources[topic] || units.flatMap(unit => unitNumbers[unit] || []);
+        }
+        const details = originalDetails(numbers);
+        if (details) {
+            const label = document.createElement('div');
+            label.className = 'guide-rewrite-label';
+            label.textContent = view === 'pdf' ? '改成这道新题' : '这题怎么切换';
+            row.cells[row.cells.length - 1].prepend(details, label);
+        }
+    });
+
+    const search = document.getElementById('guide-search');
+    const buttons = Array.from(page.querySelectorAll('[data-status]'));
+    const count = document.getElementById('guide-count');
+    const empty = document.getElementById('guide-empty');
+    let selectedStatus = 'all';
+
+    function applyFilters() {
+        const query = search.value.trim().toLocaleLowerCase();
+        let visible = 0;
+        rows.forEach(row => {
+            const cells = Array.from(row.cells);
+            const status = cells.find(cell => ['直用', '改写', '缺素材'].includes(cell.textContent.trim()));
+            const matchesStatus = selectedStatus === 'all' || status?.textContent.trim() === selectedStatus;
+            const matchesQuery = !query || row.dataset.searchText.includes(query);
+            row.hidden = !(matchesStatus && matchesQuery);
+            if (!row.hidden) visible++;
+        });
+        sections.forEach(section => {
+            const sectionRows = Array.from(section.querySelectorAll('tbody tr'));
+            section.hidden = sectionRows.length > 0 && sectionRows.every(row => row.hidden);
+        });
+        count.textContent = `${visible} / ${rows.length} ${view === 'gaps' ? '组' : '题'}`;
+        empty.hidden = visible !== 0;
+    }
+
+    search.addEventListener('input', applyFilters);
+    buttons.forEach(button => button.addEventListener('click', () => {
+        selectedStatus = button.dataset.status;
+        buttons.forEach(item => item.setAttribute('aria-pressed', String(item === button)));
+        applyFilters();
+    }));
+    applyFilters();
+})();
+</script>
+{% endblock %}

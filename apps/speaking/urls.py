@@ -15,6 +15,7 @@ urlpatterns = [
 
     re_path(r"^review/(?P<part>part[123])/#(?P<anchor>[-\w]+)$", views.review_fragment_redirect, name="speaking_review_fragment_redirect"),
     path("review/", views.review_table, name="speaking_review_table"),
+    path("review/part2/guide/", views.part2_guide, name="speaking_part2_guide"),
     path("review/<str:part>/", views.review_table, name="speaking_review_table_part"),
     path("questions/<int:question_id>/memorized/", views.mark_question_memorized, name="speaking_question_memorized"),
     path("topics/", views.topic_list, name="speaking_topic_list"),
