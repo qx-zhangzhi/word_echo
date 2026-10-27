@@ -30,13 +30,13 @@ class Part2GuideTests(TestCase):
         for number in range(1, 22):
             self.assertIn(f"M{number:02}", source)
         mapped = [number for numbers in UNIT_QUESTION_NUMBERS.values() for number in numbers]
-        self.assertEqual(sorted(mapped), list(range(1, 38)))
+        self.assertEqual(sorted(mapped), list(range(1, 40)))
 
     def test_views_include_original_answer_without_changing_memorized_time(self):
         url = reverse("speaking_part2_guide")
         for tab, expected in (
             ("units", "北京住宅楼"),
-            ("map", "37 题切换表"),
+            ("map", "39 题切换表"),
             ("pdf", "5–8 月 PDF"),
             ("gaps", "目前串不起来"),
         ):
