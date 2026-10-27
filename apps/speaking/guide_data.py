@@ -33,6 +33,9 @@ PART2_TOPIC_TITLES = {
     32: "A person who did something difficult and was successful",
     33: "A natural place in your city",
     34: "Saving money to buy something special",
+    35: "A skill you learned as a child",
+    36: "A person who likes taking photos",
+    37: "An older person you admire",
 }
 
 UNIT_QUESTION_NUMBERS = {
@@ -41,9 +44,9 @@ UNIT_QUESTION_NUMBERS = {
     "M03": (3,),
     "M04": (5,),
     "M05": (6,),
-    "M06": (7, 28),
+    "M06": (7, 28, 35, 36),
     "M07": (8,),
-    "M08": (9, 25, 32),
+    "M08": (9, 25, 32, 37),
     "M09": (11, 16, 21, 30),
     "M10": (12,),
     "M11": (13, 31),
@@ -71,6 +74,7 @@ PART2_TOPIC_LABELS = {
     27: "对结果开心的重要决定", 28: "快乐人士", 29: "看过的名人采访",
     30: "有条理的人", 31: "嘈杂地",
     32: "做困难事情并成功的人", 33: "喜欢的城市自然之地", 34: "攒钱买特别物品",
+    35: "小时候学到的新技能", 36: "喜欢拍照的人", 37: "尊敬的比你年长的人",
 }
 
 UNIT_META = {

@@ -3,7 +3,7 @@ from pathlib import Path
 from tempfile import TemporaryDirectory
 
 from django.core.management import call_command
-from django.test import TestCase
+from django.test import TestCase, override_settings
 from django.urls import reverse
 
 from .guide_data import PART2_TOPIC_TITLES, UNIT_QUESTION_NUMBERS
@@ -11,6 +11,7 @@ from .models import SpeakingQuestion, SpeakingTopic
 from .views import _guide_sections
 
 
+@override_settings(SINGLE_USER_FRONTEND_USERNAME="")
 class Part2GuideTests(TestCase):
     @classmethod
     def setUpTestData(cls):
@@ -29,13 +30,13 @@ class Part2GuideTests(TestCase):
         for number in range(1, 22):
             self.assertIn(f"M{number:02}", source)
         mapped = [number for numbers in UNIT_QUESTION_NUMBERS.values() for number in numbers]
-        self.assertEqual(sorted(mapped), list(range(1, 35)))
+        self.assertEqual(sorted(mapped), list(range(1, 38)))
 
     def test_views_include_original_answer_without_changing_memorized_time(self):
         url = reverse("speaking_part2_guide")
         for tab, expected in (
             ("units", "北京住宅楼"),
-            ("map", "34 题切换表"),
+            ("map", "37 题切换表"),
             ("pdf", "5–8 月 PDF"),
             ("gaps", "目前串不起来"),
         ):
