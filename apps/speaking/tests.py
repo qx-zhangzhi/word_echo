@@ -27,16 +27,16 @@ class Part2GuideTests(TestCase):
     def test_all_units_are_present_in_source(self):
         guide = _guide_sections("part2_integrated_guide.md")
         source = " ".join(section["html"] for section in guide)
-        for number in range(1, 24):
+        for number in range(1, 25):
             self.assertIn(f"M{number:02}", source)
         mapped = [number for numbers in UNIT_QUESTION_NUMBERS.values() for number in numbers]
-        self.assertEqual(sorted(mapped), list(range(1, 47)))
+        self.assertEqual(sorted(mapped), list(range(1, 55)))
 
     def test_views_include_original_answer_without_changing_memorized_time(self):
         url = reverse("speaking_part2_guide")
         for tab, expected in (
             ("units", "北京住宅楼"),
-            ("map", "46 题切换表"),
+            ("map", "54 题切换表"),
             ("pdf", "5–8 月 PDF"),
             ("gaps", "目前串不起来"),
         ):
@@ -56,7 +56,7 @@ class Part2GuideTests(TestCase):
     def test_units_are_grouped_by_material_with_switching_advice(self):
         response = self.client.get(reverse("speaking_part2_guide"), {"view": "units"})
         units = response.context["material_units"]
-        self.assertEqual(len(units), 23)
+        self.assertEqual(len(units), 24)
         self.assertEqual(units[0]["id"], "M01")
         self.assertEqual(units[0]["questions"][0]["answer"], "This is my complete original answer.")
         self.assertIn("用途、位置、外观", units[0]["questions"][0]["focus"])
